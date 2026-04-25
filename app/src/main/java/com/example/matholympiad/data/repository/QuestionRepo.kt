@@ -1,0 +1,68 @@
+package com.example.matholympiad.data.repository
+
+import com.example.matholympiad.data.local.dao.QuestionDao
+import com.example.matholympiad.data.local.model.Question
+import com.example.matholympiad.data.local.model.QuestionType
+import kotlinx.coroutines.flow.Flow
+import java.io.File
+import org.json.JSONObject
+
+/**
+ * 题库数据仓库
+ */
+class QuestionRepo(private val questionDao: QuestionDao) {
+    
+    /**
+     * 从 JSON 文件加载题库
+     */
+    suspend fun loadQuestionsFromJson(filePath: String): Boolean {
+        return try {
+            val file = File(filePath)
+            if (!file.exists()) {
+                false
+            } else {
+                val jsonContent = file.readText()
+                val jsonArray = org.json.JSONArray(jsonContent)
+                val questions = mutableListOf<Question>()
+                
+                for (i in 0 until jsonArray.length()) {
+                    val obj = JSONObject(jsonArray.getJSONObject(i))
+                    val question = Question(
+                        id = obj.getString("id"),
+                        content = obj.getString("content"),
+                        options = jsonArrayToStringList(obj.getJSONArray("options")),
+                        correctAnswer = obj.getInt("correctAnswer"),
+                        explanation = obj.getString("explanation"),
+                        type = QuestionType.valueOf(obj.getString("type")),
+                        difficulty = obj.getInt("difficulty")
+                    )
+                    questions.add(question)
+                }
+                
+                questionDao.insertQuestions(questions)
+                true
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    private fun jsonArrayToStringList(array: org.json.JSONArray): List<String> {
+        return (0 until array.length()).map { array.getString(it) }
+    }
+    
+    /**
+     * 按题型随机抽取题目
+     */
+    suspend fun getRandomQuestionsByType(type: QuestionType, count: Int): List<Question> {
+        return questionDao.getRandomQuestionsByType(type, count)
+    }
+    
+    /**
+     * 获取所有题库统计信息
+     */
+    suspend fun getQuestionStats(): Map<QuestionType, Int> {
+        val allQuestions = questionDao.getAllQuestions()
+        return allQuestions.groupBy { it.type }.mapValues { it.value.size }
+    }
+}

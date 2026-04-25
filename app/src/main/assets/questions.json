@@ -1,0 +1,92 @@
+[
+  {
+    "id": "math_001",
+    "content": "小明有 5 个苹果，吃了 2 个，还剩几个？",
+    "options": ["3 个", "4 个", "5 个", "2 个"],
+    "correctAnswer": 0,
+    "explanation": "5 - 2 = 3，所以答案是 3 个。",
+    "type": "CALCULATION",
+    "difficulty": 1
+  },
+  {
+    "id": "math_002",
+    "content": "小华有 8 颗糖，分给小明 3 颗，还剩几颗？",
+    "options": ["4 颗", "5 颗", "6 颗", "7 颗"],
+    "correctAnswer": 1,
+    "explanation": "8 - 3 = 5，所以答案是 5 颗。",
+    "type": "CALCULATION",
+    "difficulty": 1
+  },
+  {
+    "id": "math_003",
+    "content": "观察图形规律：△○□△○？下一个是什么图形？",
+    "options": ["△", "○", "□", "☆"],
+    "correctAnswer": 2,
+    "explanation": "图形按△○□循环，第 6 个应为□。",
+    "type": "LOGIC",
+    "difficulty": 2
+  },
+  {
+    "id": "math_004",
+    "content": "1 + 2 + 3 + 4 + 5 = ?",
+    "options": ["10", "15", "20", "25"],
+    "correctAnswer": 1,
+    "explanation": "连续求和：1+2=3, 3+3=6, 6+4=10, 10+5=15。",
+    "type": "CALCULATION",
+    "difficulty": 2
+  },
+  {
+    "id": "math_005",
+    "content": "如果今天星期一，那么 7 天后是星期几？",
+    "options": ["星期一", "星期二", "星期三", "星期四"],
+    "correctAnswer": 0,
+    "explanation": "7 天是一周，所以还是星期一。",
+    "type": "LOGIC",
+    "difficulty": 1
+  },
+  {
+    "id": "math_006",
+    "content": "一个正方形有 4 条边，3 个正方形共有多少条边？",
+    "options": ["8 条", "10 条", "12 条", "14 条"],
+    "correctAnswer": 2,
+    "explanation": "3 × 4 = 12，所以答案是 12 条。",
+    "type": "CALCULATION",
+    "difficulty": 1
+  },
+  {
+    "id": "math_007",
+    "content": "按规律填空：2, 4, 6, ?, 10",
+    "options": ["7", "8", "9", "11"],
+    "correctAnswer": 1,
+    "explanation": "每次加 2，所以是 8。",
+    "type": "LOGIC",
+    "difficulty": 1
+  },
+  {
+    "id": "math_008",
+    "content": "小丽有 3 支铅笔，小红比她多 2 支，小红有几支？",
+    "options": ["4 支", "5 支", "6 支", "7 支"],
+    "correctAnswer": 1,
+    "explanation": "3 + 2 = 5，所以答案是 5 支。",
+    "type": "CALCULATION",
+    "difficulty": 1
+  },
+  {
+    "id": "math_009",
+    "content": "观察下面的图形：▲▼◆▲▼？下一个是什么？",
+    "options": ["▲", "▼", "◆", "★"],
+    "correctAnswer": 2,
+    "explanation": "按▲▼◆循环，第 6 个应为◆。",
+    "type": "LOGIC",
+    "difficulty": 2
+  },
+  {
+    "id": "math_010",
+    "content": "9 - 3 + 2 = ?",
+    "options": ["7", "8", "6", "5"],
+    "correctAnswer": 0,
+    "explanation": "从左到右计算：9-3=6, 6+2=8。",
+    "type": "CALCULATION",
+    "difficulty": 1
+  }
+]

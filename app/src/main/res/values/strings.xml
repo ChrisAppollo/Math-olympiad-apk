@@ -1,0 +1,5 @@
+<resources>
+<string name="app_name">奥数闯关王</string>
+<string name="quiz_complete">今日闯关完成！积分已保存~</string>
+<string name="quiz_done_today">今日已完成，明天继续加油！</string>
+</resources>

@@ -1,0 +1,64 @@
+package com.example.matholympiad.presentation.navigation
+
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import com.example.matholympiad.presentation.ui.home.HomeScreen
+import com.example.matholympiad.presentation.ui.profile.ProfileScreen
+import com.example.matholympiad.presentation.ui.quiz.QuizScreen
+
+data class NavGraphRoute(val route: String)
+
+object Home : NavGraphRoute("home")
+object Quiz : NavGraphRoute("quiz/{questionIndex}") {
+    const val QUESTION_INDEX = "questionIndex"
+}
+object Profile : NavGraphRoute("profile")
+
+@Composable
+fun AppNavGraph(
+    navController: NavHostController,
+    startDestination: String = Home.route
+) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination
+    ) {
+        composable(Home.route) {
+            HomeScreen(
+                uiState = /* get from ViewModel */ TODO(),
+                onQuizClick = { navController.navigate(Quiz.route) },
+                onProfileClick = { navController.navigate(Profile.route) },
+                onLeaderboardClick = { /* TODO */ }
+            )
+        }
+        
+        composable(
+            Quiz.route,
+            arguments = listOf(navArgument(Quiz.QUESTION_INDEX) {
+                type = NavType.IntType
+                defaultValue = 0
+            })
+        ) { backStackEntry ->
+            val questionIndex = backStackEntry.arguments?.getInt(Quiz.QUESTION_INDEX) ?: 0
+            QuizScreen(
+                uiState = /* get from ViewModel */ TODO(),
+                onBackClick = { navController.popBackStack() },
+                onNextClick = {
+                    if (questionIndex < 2) {
+                        navController.navigate("quiz/${questionIndex + 1}")
+                    } else {
+                        navController.popBackStack()
+                    }
+                }
+            )
+        }
+        
+        composable(Profile.route) {
+            ProfileScreen(uiState = /* get from ViewModel */ TODO())
+        }
+    }
+}
