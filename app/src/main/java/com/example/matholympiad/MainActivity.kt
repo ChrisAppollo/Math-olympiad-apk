@@ -1,4 +1,4 @@
-package com.example.matholympiad.ui
+package com.example.matholympiad
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
