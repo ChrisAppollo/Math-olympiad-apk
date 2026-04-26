@@ -14,8 +14,8 @@ build/
 *.apk
 captures/
 
-# Gradle wrapper (optional - can be regenerated)
-gradle/wrapper/gradle-wrapper.jar
+# Gradle wrapper (REQUIRED for CI/CD - do not ignore)
+# gradle/wrapper/gradle-wrapper.jar
 
 # macOS
 .DS_Store
