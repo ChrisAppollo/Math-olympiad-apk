@@ -1,16 +1,20 @@
 package com.example.matholympiad.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.matholympiad.presentation.ui.home.HomeScreen
+import com.example.matholympiad.presentation.ui.home.HomeViewModel
 import com.example.matholympiad.presentation.ui.profile.ProfileScreen
+import com.example.matholympiad.presentation.ui.profile.ProfileViewModel
 import com.example.matholympiad.presentation.ui.quiz.QuizScreen
+import com.example.matholympiad.presentation.ui.quiz.QuizViewModel
 
-data class NavGraphRoute(val route: String)
+open class NavGraphRoute(val route: String)
 
 object Home : NavGraphRoute("home")
 object Quiz : NavGraphRoute("quiz/{questionIndex}") {
@@ -28,14 +32,15 @@ fun AppNavGraph(
         startDestination = startDestination
     ) {
         composable(Home.route) {
+            val viewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
-                uiState = /* get from ViewModel */ TODO(),
-                onQuizClick = { navController.navigate(Quiz.route) },
+                uiState = viewModel.uiState.value,
+                onQuizClick = { navController.navigate(Quiz.route.replace("{questionIndex}", "0")) },
                 onProfileClick = { navController.navigate(Profile.route) },
                 onLeaderboardClick = { /* TODO */ }
             )
         }
-        
+
         composable(
             Quiz.route,
             arguments = listOf(navArgument(Quiz.QUESTION_INDEX) {
@@ -44,8 +49,9 @@ fun AppNavGraph(
             })
         ) { backStackEntry ->
             val questionIndex = backStackEntry.arguments?.getInt(Quiz.QUESTION_INDEX) ?: 0
+            val viewModel: QuizViewModel = hiltViewModel()
             QuizScreen(
-                uiState = /* get from ViewModel */ TODO(),
+                uiState = viewModel.uiState.value,
                 onBackClick = { navController.popBackStack() },
                 onNextClick = {
                     if (questionIndex < 2) {
@@ -56,9 +62,10 @@ fun AppNavGraph(
                 }
             )
         }
-        
+
         composable(Profile.route) {
-            ProfileScreen(uiState = /* get from ViewModel */ TODO())
+            val viewModel: ProfileViewModel = hiltViewModel()
+            ProfileScreen(uiState = viewModel.uiState.value)
         }
     }
 }

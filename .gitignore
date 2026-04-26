@@ -7,3 +7,18 @@
 /.idea/workspace.xml
 .DS_Store
 test-results/
+
+# Build outputs
+app/build/
+build/
+*.apk
+captures/
+
+# Gradle wrapper (optional - can be regenerated)
+gradle/wrapper/gradle-wrapper.jar
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

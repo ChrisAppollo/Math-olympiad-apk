@@ -8,7 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.matholympiad.presentation.theme.AppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,110 +48,105 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     // 彩虹渐变进度条
+                    val progress = uiState.todayCompleted.toFloat().coerceIn(0f, 1f) / uiState.maxTodayQuestions.coerceAtLeast(1)
                     LinearProgressIndicator(
-                        progress = { uiState.todayCompleted.toFloat() / uiState.maxTodayQuestions },
+                        progress = progress,
                         modifier = Modifier.fillMaxWidth().height(12.dp),
-                        shape = RoundedCornerShape(6.dp),
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(AppColors.SkyBlue, AppColors.SuccessGreen, AppColors.WarmGold)
+                        color = AppColors.SkyBlue,
+                        trackColor = AppColors.BackgroundGray
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "已完成 ${uiState.todayCompleted}/${uiState.maxTodayQuestions} 题",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = AppColors.TextGray
                         )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${uiState.todayCompleted} / ${uiState.maxTodayQuestions}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.TextDark
-                    )
+                        Text(
+                            text = "${uiState.totalScore} 积分",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppColors.PrimaryOrange
+                        )
+                    }
                 }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // 大尺寸今日闯关按钮
-            Card(
+            // 开始答题按钮
+            Button(
+                onClick = onQuizClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(64.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AppColors.PrimaryOrange),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = AppColors.PrimaryOrange)
+                enabled = uiState.isQuizAvailable && !uiState.loading
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "🚀",
-                        fontSize = 64.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "今日闯关",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = AppColors.White,
+                        text = if (uiState.isQuizAvailable) "🚀 开始闯关" else "今日已完成",
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
                     if (uiState.isQuizAvailable) {
                         Text(
-                            text = "点击开始答题",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.WarmGold,
-                            modifier = Modifier.padding(top = 4.dp)
+                            text = "还有 ${uiState.maxTodayQuestions - uiState.todayCompleted} 道题等你挑战",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 个人资料按钮
+            OutlinedButton(
+                onClick = onProfileClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("👤 个人资料", style = MaterialTheme.typography.titleMedium)
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // 徽章展示
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = AppColors.White)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "我的勋章",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = AppColors.TextDark
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (uiState.badgesCount > 0) {
+                        Text(
+                            text = "🏅 已获得 ${uiState.badgesCount} 枚勋章",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = AppColors.WarmGold
                         )
                     } else {
                         Text(
-                            text = "今日已完成，明天继续加油！",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.White,
-                            modifier = Modifier.padding(top = 4.dp)
+                            text = "暂无勋章，加油闯关吧！",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = AppColors.TextGray
                         )
                     }
                 }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // 勋章预览区域
-            Text(
-                text = "🏅 最新勋章",
-                style = MaterialTheme.typography.titleMedium,
-                color = AppColors.TextDark
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // 简单展示 3 个勋章图标
-                for (i in 0 until minOf(uiState.badgesCount, 3)) {
-                    Card(
-                        modifier = Modifier.size(80.dp),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Text(text = "🏅", fontSize = 32.sp)
-                        }
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // 排行榜入口
-            Button(
-                onClick = onLeaderboardClick,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AppColors.SkyBlue),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(
-                    text = "⭐ 排行榜 TOP20",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = AppColors.White
-                )
             }
         }
     }

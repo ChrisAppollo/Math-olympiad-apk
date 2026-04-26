@@ -10,8 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.matholympiad.presentation.theme.AppColors
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(uiState: ProfileUiState) {
     Scaffold(
@@ -88,6 +90,8 @@ fun ProfileScreen(uiState: ProfileUiState) {
                         Text("${uiState.badgesCount}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = AppColors.SkyBlue)
                     }
                 }
+                
+                Spacer(modifier = Modifier.width(16.dp))
                 
                 Card(
                     modifier = Modifier.weight(1f).height(100.dp),

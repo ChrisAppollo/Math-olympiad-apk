@@ -14,7 +14,8 @@ object AppColors {
     val AlertRed = Color(0xFFEF4444)          // 警示红
     
     // 中性色
-    val BackgroundGray = Color(0xFFF3F4F6)    // 浅灰底色
-    val TextDark = Color(0xFF1F2937)          // 深灰文字
+    val BackgroundGray = Color(0xFFF3F4F6) // 浅灰底色
+    val TextDark = Color(0xFF1F2937) // 深灰文字
+    val TextGray = Color(0xFF6B7280) // 灰色文字
     val White = Color.White
 }

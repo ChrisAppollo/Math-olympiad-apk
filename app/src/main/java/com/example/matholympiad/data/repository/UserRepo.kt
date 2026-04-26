@@ -26,7 +26,7 @@ class UserRepo(private val userDao: UserDao) {
             user = User(
                 userId = DEFAULT_USER_ID,
                 totalScore = 0,
-                badges = emptyList(),
+                badges = "[]",
                 streakCount = 0,
                 lastLoginDate = todayDate,
                 todayQuestionsCompleted = 0

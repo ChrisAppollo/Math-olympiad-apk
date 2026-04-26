@@ -3,6 +3,7 @@ package com.example.matholympiad.data.repository
 import com.example.matholympiad.data.local.dao.QuestionDao
 import com.example.matholympiad.data.local.model.Question
 import com.example.matholympiad.data.local.model.QuestionType
+import com.example.matholympiad.data.local.model.UserTypeConverters
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import org.json.JSONObject
@@ -26,16 +27,16 @@ class QuestionRepo(private val questionDao: QuestionDao) {
                 val questions = mutableListOf<Question>()
                 
                 for (i in 0 until jsonArray.length()) {
-                    val obj = JSONObject(jsonArray.getJSONObject(i))
-                    val question = Question(
-                        id = obj.getString("id"),
-                        content = obj.getString("content"),
-                        options = jsonArrayToStringList(obj.getJSONArray("options")),
-                        correctAnswer = obj.getInt("correctAnswer"),
-                        explanation = obj.getString("explanation"),
-                        type = QuestionType.valueOf(obj.getString("type")),
-                        difficulty = obj.getInt("difficulty")
-                    )
+                    val obj = jsonArray.getJSONObject(i)
+            val question = Question(
+                id = obj.getString("id"),
+                content = obj.getString("content"),
+                options = UserTypeConverters().stringListToString(jsonArrayToStringList(obj.getJSONArray("options"))),
+                correctAnswer = obj.getInt("correctAnswer"),
+                explanation = obj.getString("explanation"),
+                type = obj.getString("type"),
+                difficulty = obj.getInt("difficulty")
+            )
                     questions.add(question)
                 }
                 
@@ -59,9 +60,16 @@ class QuestionRepo(private val questionDao: QuestionDao) {
     }
     
     /**
-     * 获取所有题库统计信息
+     * 获取所有题目
      */
-    suspend fun getQuestionStats(): Map<QuestionType, Int> {
+    suspend fun getAllQuestions(): List<Question> {
+        return questionDao.getAllQuestions()
+    }
+
+    /**
+     * 获取题库统计信息
+     */
+    suspend fun getQuestionStats(): Map<String, Int> {
         val allQuestions = questionDao.getAllQuestions()
         return allQuestions.groupBy { it.type }.mapValues { it.value.size }
     }

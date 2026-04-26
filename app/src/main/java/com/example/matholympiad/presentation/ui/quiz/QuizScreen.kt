@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.matholympiad.presentation.theme.AppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,27 +25,11 @@ fun QuizScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        repeat(uiState.totalQuestions) { index ->
-                            Box(
-                                modifier = Modifier
-                                    .size(if (index < uiState.currentQuestionIndex + 1) 24.dp else 20.dp)
-                                    .background(
-                                        color = if (index == uiState.currentQuestionIndex) AppColors.PrimaryOrange else AppColors.BackgroundGray,
-                                        shape = RoundedCornerShape(10.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = "${index + 1}",
-                                    fontSize = if (index < uiState.currentQuestionIndex + 1) 12.sp else 10.sp,
-                                    color = AppColors.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
+                    Text("答题闯关", color = AppColors.TextDark)
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Text("←", fontSize = 24.sp, color = AppColors.TextDark)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.White)
@@ -71,7 +56,7 @@ fun QuizScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = uiState.currentQuestion?.content ?: "",
+                        text = uiState.currentQuestion?.content ?: "加载题目中...",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = AppColors.TextDark
@@ -82,10 +67,11 @@ fun QuizScreen(
             Spacer(modifier = Modifier.height(24.dp))
             
             // 选项区域
-            uiState.currentQuestion?.options?.forEachIndexed { index, option ->
+            val optionsList = uiState.currentQuestion?.getOptionsList() ?: emptyList()
+            optionsList.forEachIndexed { index, option ->
                 val isSelected = uiState.selectedAnswer == index
                 Button(
-                    onClick = { /* Handle selection */ },
+                    onClick = { /* Will trigger via ViewModel */ },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
@@ -127,7 +113,9 @@ fun QuizScreen(
                 Button(
                     onClick = { /* Submit */ },
                     modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (uiState.isCorrect == true) AppColors.SuccessGreen else AppColors.PrimaryOrange),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (uiState.isCorrect == true) AppColors.SuccessGreen else AppColors.PrimaryOrange
+                    ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(

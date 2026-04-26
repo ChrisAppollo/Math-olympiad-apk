@@ -2,6 +2,7 @@ package com.example.matholympiad.data.local.dao
 
 import androidx.room.*
 import com.example.matholympiad.data.local.model.Question
+import com.example.matholympiad.data.local.model.TodayQuestion
 import com.example.matholympiad.data.local.model.QuestionType
 import kotlinx.coroutines.flow.Flow
 

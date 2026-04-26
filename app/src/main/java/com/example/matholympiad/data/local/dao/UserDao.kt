@@ -2,6 +2,7 @@ package com.example.matholympiad.data.local.dao
 
 import androidx.room.*
 import com.example.matholympiad.data.local.model.User
+import com.example.matholympiad.data.local.model.UserTypeConverters
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -34,7 +35,9 @@ interface UserDao {
     @Transaction
     suspend fun updateUserBadges(userId: String, newBadgeIds: List<String>) {
         val user = getUser(userId) ?: throw IllegalArgumentException("User not found")
-        val updatedBadges = (user.badges + newBadgeIds).distinct()
-        updateUser(user.copy(badges = updatedBadges))
+        val currentBadges = user.getBadgesList()
+        val updatedBadges = (currentBadges + newBadgeIds).distinct()
+        val converters = UserTypeConverters()
+        updateUser(user.copy(badges = converters.stringListToString(updatedBadges)))
     }
 }

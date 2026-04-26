@@ -3,6 +3,10 @@ package com.example.matholympiad.di
 import android.content.Context
 import androidx.room.Room
 import com.example.matholympiad.data.local.database.AppDatabase
+import com.example.matholympiad.data.local.dao.UserDao
+import com.example.matholympiad.data.local.dao.QuestionDao
+import com.example.matholympiad.data.local.dao.AnswerHistoryDao
+import com.example.matholympiad.data.local.dao.AnswerHistoryDaoImpl
 import com.example.matholympiad.data.repository.QuestionRepo
 import com.example.matholympiad.data.repository.UserRepo
 import com.example.matholympiad.domain.usecase.CheckBadges
@@ -38,9 +42,9 @@ object AppModule {
     @Singleton
     fun provideQuestionDao(database: AppDatabase) = database.questionDao()
     
-    @Provides
-    @Singleton
-    fun provideAnswerHistoryDao(database: AppDatabase) = database.answerHistoryDao()
+ @Provides
+ @Singleton
+ fun provideAnswerHistoryDao(): AnswerHistoryDao = AnswerHistoryDaoImpl()
     
     @Provides
     @Singleton
