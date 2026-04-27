@@ -8,9 +8,10 @@ import androidx.room.TypeConverters
  * 题型枚举
  */
 enum class QuestionType {
-    CALCULATION,    // 计算题
-    LOGIC,          // 逻辑推理题
-    GRAPHIC         // 图形题
+ CALCULATION, // 计算题
+ LOGIC, // 逻辑推理题
+ GRAPHIC, // 图形题
+ ARITHMETIC // 算术/奥数题
 }
 
 /**

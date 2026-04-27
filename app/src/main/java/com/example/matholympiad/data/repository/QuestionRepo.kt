@@ -62,15 +62,22 @@ class QuestionRepo(private val questionDao: QuestionDao) {
     /**
      * 获取所有题目
      */
-    suspend fun getAllQuestions(): List<Question> {
-        return questionDao.getAllQuestions()
-    }
+suspend fun getAllQuestions(): List<Question> {
+  return questionDao.getAllQuestions()
+ }
 
-    /**
-     * 获取题库统计信息
-     */
-    suspend fun getQuestionStats(): Map<String, Int> {
-        val allQuestions = questionDao.getAllQuestions()
-        return allQuestions.groupBy { it.type }.mapValues { it.value.size }
-    }
+ /**
+  * 获取题目数量
+  */
+ suspend fun getQuestionCount(): Int {
+  return questionDao.getQuestionCount()
+ }
+
+ /**
+  * 获取题库统计信息
+  */
+ suspend fun getQuestionStats(): Map<String, Int> {
+  val allQuestions = questionDao.getAllQuestions()
+  return allQuestions.groupBy { it.type }.mapValues { it.value.size }
+ }
 }

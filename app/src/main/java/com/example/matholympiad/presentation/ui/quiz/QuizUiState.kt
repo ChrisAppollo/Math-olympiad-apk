@@ -14,5 +14,16 @@ data class QuizUiState(
     val isCorrect: Boolean? = null,
     val explanation: String = "",
     val encouragement: String = "",
-    val score: Int = 0
+    val score: Int = 0,
+    val hintShowing: Boolean = false,
+    val hintText: String = "",
+    val quizCompleted: Boolean = false,
+    val showAnimation: Boolean = false,
+    val earnedBadges: List<String> = emptyList(),
+    val loading: Boolean = false,
+    // Stats tracking
+    val questionStartTime: Long = System.currentTimeMillis(),
+    val lastAnswerTime: Long = 0L,
+    val totalCorrectAnswers: Int = 0,
+    val currentStreak: Int = 0
 )

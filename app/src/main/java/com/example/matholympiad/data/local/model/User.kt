@@ -25,13 +25,15 @@ data class AnswerRecord(
 @TypeConverters(UserTypeConverters::class)
 data class User(
     @PrimaryKey val userId: String,
-    var totalScore: Int = 0,                  // 总积分累计
-    var badges: String = "[]",                  // 已解锁勋章 ID 列表（JSON字符串）
-    var streakCount: Int = 0,                 // 连续打卡天数
-    val lastLoginDate: String,                // "2026-04-25"
-    var todayQuestionsCompleted: Int = 0,     // 今日已完成题数
-    val answerHistory: String = "[]"            // 历史答题记录（JSON字符串）
-) {
+    var totalScore: Int = 0, // 总积分累计
+    var badges: String = "[]", // 已解锁勋章 ID 列表（JSON字符串）
+    var streakCount: Int = 0, // 连续打卡天数
+    val lastLoginDate: String, // "2026-04-25"
+    var todayQuestionsCompleted: Int = 0, // 今日已完成题数
+    val answerHistory: String = "[]", // 历史答题记录（JSON字符串）
+    var totalAnswered: Int = 0, // 累计答题数量
+    var totalCorrect: Int = 0 // 累计正确答题数量
+){
     // 辅助方法：获取徽章列表
     fun getBadgesList(): List<String> {
         return UserTypeConverters().stringToStringList(badges)
@@ -80,39 +82,6 @@ class UserTypeConverters {
         val listType = object : TypeToken<List<AnswerRecord>>() {}.type
         return gson.fromJson(value, listType) ?: emptyList()
     }
-
-    @TypeConverter
-    fun intMapToString(map: Map<String, Int>): String {
-        return gson.toJson(map)
-    }
-
-    @TypeConverter
-    fun stringToIntMap(value: String): Map<String, Int> {
-        val mapType = object : TypeToken<Map<String, Int>>() {}.type
-        return gson.fromJson(value, mapType) ?: emptyMap()
-    }
-}
-
-/**
- * 勋章数据模型
- * 存储于 badges 表
- */
-@Entity(tableName = "badges")
-@TypeConverters(UserTypeConverters::class)
-data class Badge(
-    @PrimaryKey val id: String,                 // "beginner", "persistence_7days"
-    val name: String,                           // "新手入门"
-    val description: String,                  // 获取条件说明
-    var unlockConditions: String = "{}",      // {"minStreakDays": 7} (JSON)
-    val iconResName: String = ""                // 资源名称（图标图片）
-) {
-    fun getUnlockConditionsMap(): Map<String, Int> {
-        return UserTypeConverters().stringToIntMap(unlockConditions)
-    }
-
-    fun withUnlockConditionsMap(map: Map<String, Int>): Badge {
-        return this.copy(unlockConditions = UserTypeConverters().intMapToString(map))
-    }
 }
 
 /**
@@ -121,5 +90,5 @@ data class Badge(
 @Entity(tableName = "today_questions")
 data class TodayQuestion(
     @PrimaryKey val questionId: String,
-    val indexInToday: Int   // 今日第几题（0-2）
+    val indexInToday: Int // 今日第几题（0-2）
 )

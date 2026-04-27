@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.matholympiad.data.local.dao.*
+import com.example.matholympiad.data.local.dao.QuestionDao
+import com.example.matholympiad.data.local.dao.UserDao
 import com.example.matholympiad.data.local.model.Badge
 import com.example.matholympiad.data.local.model.Question
 import com.example.matholympiad.data.local.model.TodayQuestion
@@ -20,18 +21,18 @@ import com.example.matholympiad.data.local.model.User
  Badge::class,
  TodayQuestion::class
  ],
- version = 1,
+ version = 3,
  exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
  
- abstract fun userDao(): UserDao
- abstract fun questionDao(): QuestionDao
+    abstract fun userDao(): UserDao
+    abstract fun questionDao(): QuestionDao
  
- companion object {
+    companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        
+ 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -39,9 +40,10 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "math_olympiad_database"
                 )
-                .fallbackToDestructiveMigration()  // 支持数据库版本升级
-                .build()
-                
+ .addMigrations(DatabaseMigrations.MIGRATION_1_2, DatabaseMigrations.MIGRATION_2_3)
+ .fallbackToDestructiveMigration() // 作为后备方案
+ .build()
+ 
                 INSTANCE = instance
                 instance
             }

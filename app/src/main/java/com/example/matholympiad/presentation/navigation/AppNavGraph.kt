@@ -1,26 +1,27 @@
 package com.example.matholympiad.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.example.matholympiad.presentation.ui.home.HomeScreen
 import com.example.matholympiad.presentation.ui.home.HomeViewModel
 import com.example.matholympiad.presentation.ui.profile.ProfileScreen
 import com.example.matholympiad.presentation.ui.profile.ProfileViewModel
 import com.example.matholympiad.presentation.ui.quiz.QuizScreen
 import com.example.matholympiad.presentation.ui.quiz.QuizViewModel
+import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersScreen
+import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersViewModel
 
 open class NavGraphRoute(val route: String)
 
 object Home : NavGraphRoute("home")
-object Quiz : NavGraphRoute("quiz/{questionIndex}") {
-    const val QUESTION_INDEX = "questionIndex"
-}
+object Quiz : NavGraphRoute("quiz")
 object Profile : NavGraphRoute("profile")
+object WrongAnswers : NavGraphRoute("wrong_answers")
 
 @Composable
 fun AppNavGraph(
@@ -33,39 +34,53 @@ fun AppNavGraph(
     ) {
         composable(Home.route) {
             val viewModel: HomeViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
             HomeScreen(
-                uiState = viewModel.uiState.value,
-                onQuizClick = { navController.navigate(Quiz.route.replace("{questionIndex}", "0")) },
+                uiState = uiState,
+                onQuizClick = { navController.navigate(Quiz.route) },
                 onProfileClick = { navController.navigate(Profile.route) },
-                onLeaderboardClick = { /* TODO */ }
+                onLeaderboardClick = { /* TODO: 实现排行榜 */ }
             )
         }
 
-        composable(
-            Quiz.route,
-            arguments = listOf(navArgument(Quiz.QUESTION_INDEX) {
-                type = NavType.IntType
-                defaultValue = 0
-            })
-        ) { backStackEntry ->
-            val questionIndex = backStackEntry.arguments?.getInt(Quiz.QUESTION_INDEX) ?: 0
-            val viewModel: QuizViewModel = hiltViewModel()
-            QuizScreen(
-                uiState = viewModel.uiState.value,
-                onBackClick = { navController.popBackStack() },
-                onNextClick = {
-                    if (questionIndex < 2) {
-                        navController.navigate("quiz/${questionIndex + 1}")
-                    } else {
+    composable(Quiz.route) {
+        val viewModel: QuizViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsState()
+        
+        QuizScreen(
+            uiState = uiState,
+                onAnswerSelected = { index -> viewModel.selectAnswer(index) },
+                onSubmitClick = { viewModel.submitAnswer() },
+                onNextClick = { 
+                    if (uiState.quizCompleted) {
+                        viewModel.completeQuiz()
                         navController.popBackStack()
+                    } else {
+                        viewModel.nextQuestion()
                     }
+                },
+                onHintClick = { viewModel.showHint() },
+                onBackClick = { 
+                    viewModel.resetQuiz()
+                    navController.popBackStack() 
                 }
             )
         }
 
         composable(Profile.route) {
             val viewModel: ProfileViewModel = hiltViewModel()
-            ProfileScreen(uiState = viewModel.uiState.value)
+            val uiState by viewModel.uiState.collectAsState()
+            ProfileScreen(
+                uiState = uiState,
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        composable(WrongAnswers.route) {
+            val viewModel: WrongAnswersViewModel = hiltViewModel()
+            WrongAnswersScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

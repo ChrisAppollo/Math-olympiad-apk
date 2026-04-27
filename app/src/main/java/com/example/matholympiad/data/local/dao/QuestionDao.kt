@@ -11,26 +11,34 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface QuestionDao {
-    
-    @Query("SELECT * FROM questions")
-    suspend fun getAllQuestions(): List<Question>
-    
-    @Query("SELECT * FROM questions WHERE type = :type ORDER BY RANDOM() LIMIT :count")
-    suspend fun getRandomQuestionsByType(type: QuestionType, count: Int): List<Question>
-    
-    @Query("SELECT * FROM questions WHERE id IN (:questionIds)")
-    suspend fun getQuestionsByIds(questionIds: List<String>): List<Question>
-    
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertQuestions(questions: List<Question>)
-    
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTodayQuestions(todayQuestions: List<TodayQuestion>)
-    
-    @Query("SELECT * FROM today_questions")
-    suspend fun getTodayQuestions(): List<TodayQuestion>
-    
-    @Query("DELETE FROM today_questions")
-    suspend fun clearTodayQuestions()
+ 
+ @Query("SELECT * FROM questions ORDER BY RANDOM() LIMIT 5")
+ suspend fun getRandomQuestions(): List<Question>
+ 
+ @Query("SELECT * FROM questions WHERE type = :type ORDER BY RANDOM() LIMIT :count")
+ suspend fun getRandomQuestionsByType(type: QuestionType, count: Int): List<Question>
+ 
+ @Query("SELECT * FROM questions")
+ suspend fun getAllQuestions(): List<Question>
+ 
+ @Query("SELECT COUNT(*) FROM questions")
+ suspend fun getQuestionCount(): Int
+ 
+ @Insert(onConflict = OnConflictStrategy.REPLACE)
+ suspend fun insertQuestions(questions: List<Question>)
+ 
+ @Query("DELETE FROM questions")
+ suspend fun deleteAllQuestions()
+ 
+ @Query("SELECT * FROM questions WHERE id IN (:questionIds)")
+ suspend fun getQuestionsByIds(questionIds: List<String>): List<Question>
+ 
+ @Insert(onConflict = OnConflictStrategy.REPLACE)
+ suspend fun insertTodayQuestions(todayQuestions: List<TodayQuestion>)
+ 
+ @Query("SELECT * FROM today_questions")
+ suspend fun getTodayQuestions(): List<TodayQuestion>
+ 
+ @Query("DELETE FROM today_questions")
+ suspend fun clearTodayQuestions()
 }
-

@@ -2,6 +2,7 @@ package com.example.matholympiad.presentation.ui.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.matholympiad.data.repository.QuestionRepositoryInitializer
 import com.example.matholympiad.data.repository.UserRepo
 import com.example.matholympiad.domain.usecase.CheckBadges
 import com.example.matholympiad.domain.usecase.GetTodayQuestions
@@ -15,14 +16,24 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val getTodayQuestions: GetTodayQuestions,
-    private val checkBadges: CheckBadges
+    private val checkBadges: CheckBadges,
+    private val questionInitializer: QuestionRepositoryInitializer
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
     init {
-        loadUserData()
+        initializeData()
+    }
+
+    private fun initializeData() {
+        viewModelScope.launch {
+            // 首先初始化题库
+            questionInitializer.initializeIfNeeded()
+            // 然后加载用户数据
+            loadUserData()
+        }
     }
 
     private fun loadUserData() {
