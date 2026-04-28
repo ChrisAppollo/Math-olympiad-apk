@@ -25,8 +25,11 @@ jobs:
     - name: Grant execute permission
       run: chmod +x gradlew
     
-    - name: Build APK
-      run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+- name: Clean before build
+ run: ./gradlew clean --no-daemon
+
+ - name: Build APK
+ run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
