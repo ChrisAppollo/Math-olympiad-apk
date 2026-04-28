@@ -18,25 +18,29 @@ object DatabaseMigrations {
         }
     }
     
-    // Migration 2 -> 3: 重建questions表以修复options格式
-    val MIGRATION_2_3 = object : Migration(2, 3) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            // 删除旧表
-            database.execSQL("DROP TABLE IF EXISTS questions")
-            // 创建新表
-            database.execSQL("""
-                CREATE TABLE IF NOT EXISTS questions (
-                    id TEXT PRIMARY KEY NOT NULL,
-                    content TEXT NOT NULL,
-                    options TEXT NOT NULL DEFAULT '[]',
-                    correctAnswer INTEGER NOT NULL,
-                    explanation TEXT NOT NULL,
-                    type TEXT NOT NULL DEFAULT 'ARITHMETIC',
-                    difficulty INTEGER NOT NULL
-                )
-            """)
-        }
-    }
+ // Migration 2 -> 3: 重建questions表以修复options格式
+ val MIGRATION_2_3 = object : Migration(2, 3) {
+ override fun migrate(database: SupportSQLiteDatabase) {
+ // 删除旧表
+ database.execSQL("DROP TABLE IF EXISTS questions")
+ // 创建新表 - 包含所有字段
+ database.execSQL("""
+ CREATE TABLE IF NOT EXISTS questions (
+ id TEXT PRIMARY KEY NOT NULL,
+ content TEXT NOT NULL,
+ options TEXT NOT NULL DEFAULT '[]',
+ correctAnswer INTEGER NOT NULL DEFAULT -1,
+ correctAnswerText TEXT NOT NULL DEFAULT '',
+ explanation TEXT NOT NULL DEFAULT '',
+ hint TEXT NOT NULL DEFAULT '',
+ type TEXT NOT NULL DEFAULT 'CALCULATION',
+ module TEXT NOT NULL DEFAULT '',
+ topic TEXT NOT NULL DEFAULT '',
+ difficulty INTEGER NOT NULL DEFAULT 2
+ )
+ """)
+ }
+ }
     
     // Migration 3 -> 4: 添加新字段支持填空题
     val MIGRATION_3_4 = object : Migration(3, 4) {

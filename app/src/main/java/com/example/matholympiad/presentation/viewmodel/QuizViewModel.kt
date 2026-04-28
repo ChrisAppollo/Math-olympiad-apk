@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.local.model.Question
 import com.example.matholympiad.data.repository.QuestionRepo
+import com.example.matholympiad.data.repository.UserRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,22 +17,24 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class QuizUiState(
-    val currentQuestion: Question? = null,
-    val currentQuestionIndex: Int = 0,
-    val totalQuestions: Int = 0,
-    val score: Int = 0,
-    val feedbackShowing: Boolean = false,
-    val isCorrect: Boolean? = null,
-    val hintShowing: Boolean = false,
-    val hintText: String = "",
-    val explanation: String = "",
-    val encouragement: String = "",
-    val quizCompleted: Boolean = false
+ val currentQuestion: Question? = null,
+ val currentQuestionIndex: Int = 0,
+ val totalQuestions: Int = 0,
+ val score: Int = 0,
+ val lastQuestionPoints: Int = 0, // 记录上一题获得的积分
+ val feedbackShowing: Boolean = false,
+ val isCorrect: Boolean? = null,
+ val hintShowing: Boolean = false,
+ val hintText: String = "",
+ val explanation: String = "",
+ val encouragement: String = "",
+ val quizCompleted: Boolean = false
 )
 
 @HiltViewModel
 class QuizViewModel @Inject constructor(
-    private val questionRepo: QuestionRepo
+ private val questionRepo: QuestionRepo,
+ private val userRepo: UserRepo
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizUiState())
@@ -48,49 +51,58 @@ class QuizViewModel @Inject constructor(
         loadQuestions()
     }
 
-    private fun loadQuestions() {
-        viewModelScope.launch {
-            questions = questionRepo.getAllQuestions()
-            if (questions.isNotEmpty()) {
-                _uiState.update {
-                    it.copy(
-                        currentQuestion = questions[0],
-                        currentQuestionIndex = 0,
-                        totalQuestions = questions.size
-                    )
-                }
-            }
-        }
-    }
+ private fun loadQuestions() {
+ viewModelScope.launch {
+ questions = questionRepo.getTodayQuestions() // 只加载3道今日题目
+ if (questions.isNotEmpty()) {
+ _uiState.update {
+ it.copy(
+ currentQuestion = questions[0],
+ currentQuestionIndex = 0,
+ totalQuestions = questions.size // 这里会显示3
+ )
+ }
+ }
+ }
+ }
 
     fun onAnswerChanged(answer: String) {
         userAnswer = answer
     }
 
-    fun onSubmitClick() {
-        val currentQuestion = _uiState.value.currentQuestion ?: return
-        if (userAnswer.isBlank()) return
+ fun onSubmitClick() {
+ val currentQuestion = _uiState.value.currentQuestion ?: return
+ if (userAnswer.isBlank()) return
 
-        val isAnswerCorrect = currentQuestion.checkAnswer(userAnswer)
-        
-        _uiState.update { state ->
-            state.copy(
-                feedbackShowing = true,
-                isCorrect = isAnswerCorrect,
-                explanation = currentQuestion.explanation,
-                hintShowing = true, // 提交后自动显示提示
-                hintText = currentQuestion.hint
-            )
-        }
-
-        if (isAnswerCorrect) {
-            correctStreak++
-            val points = calculatePoints(currentQuestion.difficulty, correctStreak)
-            _uiState.update { it.copy(score = it.score + points) }
-        } else {
-            correctStreak = 0
-        }
-    }
+ val isAnswerCorrect = currentQuestion.checkAnswer(userAnswer)
+ 
+ // 计算并获得本题的积分
+ val earnedPoints = if (isAnswerCorrect) {
+ correctStreak++
+ calculatePoints(currentQuestion.difficulty, correctStreak)
+ } else {
+ correctStreak = 0
+ 0
+ }
+ 
+ // 保存积分到用户资料
+ viewModelScope.launch {
+ userRepo.addPoints(earnedPoints)
+ userRepo.updateTodayCompletedCount(_uiState.value.currentQuestionIndex + 1)
+ }
+ 
+ _uiState.update { state ->
+ state.copy(
+ feedbackShowing = true,
+ isCorrect = isAnswerCorrect,
+ score = state.score + earnedPoints,
+ lastQuestionPoints = earnedPoints, // 记录本题的积分
+ explanation = currentQuestion.explanation,
+ hintShowing = true,
+ hintText = currentQuestion.hint
+ )
+ }
+ }
 
     fun onNextClick() {
         val currentIndex = _uiState.value.currentQuestionIndex
@@ -134,19 +146,11 @@ class QuizViewModel @Inject constructor(
         }
     }
 
-    fun resetQuiz() {
-        correctStreak = 0
-        userAnswer = ""
-        if (questions.isNotEmpty()) {
-            _uiState.update {
-                QuizUiState(
-                    currentQuestion = questions[0],
-                    currentQuestionIndex = 0,
-                    totalQuestions = questions.size
-                )
-            }
-        }
-    }
+ fun resetQuiz() {
+ correctStreak = 0
+ userAnswer = ""
+ loadQuestions() // 重新加载今日3道题目
+ }
 
     private fun calculatePoints(difficulty: Int, streak: Int): Int {
         val basePoints = difficulty * 10

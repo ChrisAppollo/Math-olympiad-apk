@@ -73,11 +73,24 @@ suspend fun getAllQuestions(): List<Question> {
   return questionDao.getQuestionCount()
  }
 
- /**
-  * 获取题库统计信息
-  */
+/**
+ * 获取题库统计信息
+ */
  suspend fun getQuestionStats(): Map<String, Int> {
-  val allQuestions = questionDao.getAllQuestions()
-  return allQuestions.groupBy { it.type }.mapValues { it.value.size }
+ val allQuestions = questionDao.getAllQuestions()
+ return allQuestions.groupBy { it.type }.mapValues { it.value.size }
+ }
+
+ /**
+ * 获取今日闯关题目（固定3道）
+ */
+ suspend fun getTodayQuestions(): List<Question> {
+ // 从所有题目中随机取3道
+ val allQuestions = questionDao.getAllQuestions()
+ return if (allQuestions.size <= 3) {
+ allQuestions
+ } else {
+ allQuestions.shuffled().take(3)
+ }
  }
 }

@@ -1,8 +1,6 @@
 package com.example.matholympiad.presentation.ui.quiz
-
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.ui.ExperimentalComposeUiApi
-import com.example.matholympiad.presentation.viewmodel.QuizUiState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -29,6 +27,8 @@ import com.example.matholympiad.presentation.theme.AppColors
 import com.example.matholympiad.presentation.ui.components.CorrectAnswerAnimation
 import com.example.matholympiad.presentation.ui.components.WrongAnswerAnimation
 import com.example.matholympiad.presentation.ui.components.QuizCompletionAnimation
+import com.example.matholympiad.presentation.viewmodel.QuizUiState
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -68,12 +68,15 @@ fun QuizScreen(
         }
     }
 
-    // 新题目加载时自动聚焦输入框
-    LaunchedEffect(uiState.currentQuestionIndex) {
-        if (!uiState.feedbackShowing && !uiState.quizCompleted) {
-            focusRequester.requestFocus()
-        }
-    }
+// 新题目加载时自动聚焦输入框（仅当填空题且非反馈/完成状态时）
+// 使用delay避免在composition期间请求焦点
+LaunchedEffect(uiState.currentQuestionIndex) {
+ if (!uiState.feedbackShowing && !uiState.quizCompleted && 
+ uiState.currentQuestion != null && !uiState.currentQuestion.isMultipleChoice()) {
+ delay(100) // 延迟确保输入框已初始化
+ focusRequester.requestFocus()
+ }
+}
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -324,12 +327,13 @@ fun QuizScreen(
                 }
             }
 
-            // 动画叠加层
-            if (showCorrectAnimation) {
-                CorrectAnswerAnimation(
-                    onAnimationEnd = { showCorrectAnimation = false }
-                )
-            }
+ // 动画叠加层
+ if (showCorrectAnimation) {
+ CorrectAnswerAnimation(
+ points = uiState.lastQuestionPoints,
+ onAnimationEnd = { showCorrectAnimation = false }
+ )
+ }
 
             if (showWrongAnimation) {
                 WrongAnswerAnimation(

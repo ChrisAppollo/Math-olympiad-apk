@@ -29,8 +29,9 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun CorrectAnswerAnimation(
-    modifier: Modifier = Modifier,
-    onAnimationEnd: () -> Unit = {}
+ modifier: Modifier = Modifier,
+ points: Int = 10,
+ onAnimationEnd: () -> Unit = {}
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.Asset("lottie/correct.json"))
     val progress by animateLottieCompositionAsState(
@@ -92,14 +93,14 @@ fun CorrectAnswerAnimation(
                     color = AppColors.SuccessGreen
                 )
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "回答正确！\n+10 积分",
-                    fontSize = 16.sp,
-                    color = AppColors.TextGray,
-                    textAlign = TextAlign.Center
-                )
+Spacer(modifier = Modifier.height(8.dp))
+ 
+ Text(
+ text = "回答正确！\n+$points 积分",
+ fontSize = 16.sp,
+ color = AppColors.TextGray,
+ textAlign = TextAlign.Center
+ )
             }
         }
     }
