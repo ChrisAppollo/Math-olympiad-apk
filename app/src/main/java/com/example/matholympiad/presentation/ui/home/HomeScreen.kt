@@ -118,36 +118,51 @@ fun HomeScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // 徽章展示
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = AppColors.White)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "我的勋章",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.TextDark
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    if (uiState.badgesCount > 0) {
-                        Text(
-                            text = "🏅 已获得 ${uiState.badgesCount} 枚勋章",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = AppColors.WarmGold
-                        )
-                    } else {
-                        Text(
-                            text = "暂无勋章，加油闯关吧！",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.TextGray
-                        )
-                    }
-                }
-            }
-        }
+ // 徽章展示
+ Card(
+ modifier = Modifier.fillMaxWidth(),
+ shape = RoundedCornerShape(12.dp),
+ colors = CardDefaults.cardColors(containerColor = AppColors.White)
+ ) {
+ Column(
+ modifier = Modifier.padding(16.dp)
+ ) {
+ Text(
+ text = "我的勋章",
+ style = MaterialTheme.typography.titleMedium,
+ color = AppColors.TextDark
+ )
+ Spacer(modifier = Modifier.height(8.dp))
+ if (uiState.badgesCount > 0) {
+ // 显示已解锁勋章的图标
+ Row(
+ modifier = Modifier.fillMaxWidth(),
+ horizontalArrangement = Arrangement.spacedBy(8.dp),
+ verticalAlignment = Alignment.CenterVertically
+ ) {
+ uiState.getUnlockedBadgeInfos().take(4).forEach { badge ->
+ Text(
+ text = badge.emoji,
+ fontSize = 32.sp
+ )
+ }
+ if (uiState.badgesCount > 4) {
+ Text(
+ text = "+${uiState.badgesCount - 4}",
+ fontSize = 18.sp,
+ color = AppColors.WarmGold
+ )
+ }
+ }
+ } else {
+ Text(
+ text = "暂无勋章，加油闯关吧！",
+ style = MaterialTheme.typography.bodyMedium,
+ color = AppColors.TextGray
+ )
+ }
+ }
+ }
+}
     }
 }

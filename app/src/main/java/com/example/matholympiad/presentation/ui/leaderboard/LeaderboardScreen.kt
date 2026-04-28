@@ -12,14 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.matholympiad.data.local.model.LeaderboardEntry
 import com.example.matholympiad.presentation.theme.AppColors
 
-data class LeaderboardEntry(
-    val rank: Int,
-    val userName: String,
-    val score: Int,
-    val streak: Int
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,7 +158,7 @@ private fun LeaderboardItem(entry: LeaderboardEntry) {
                 color = AppColors.PrimaryOrange
             )
             Text(
-                text = "🔥 ${entry.streak}天",
+                text = "🔥 ${entry.streakDays}天",
                 style = MaterialTheme.typography.bodySmall,
                 color = AppColors.TextGray
             )

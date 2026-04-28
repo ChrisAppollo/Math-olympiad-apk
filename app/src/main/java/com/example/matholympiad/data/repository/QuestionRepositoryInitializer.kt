@@ -27,8 +27,14 @@ class QuestionRepositoryInitializer @Inject constructor(
         withContext(Dispatchers.IO) {
             val existingCount = questionDao.getQuestionCount()
             if (existingCount == 0) {
-                // 题库为空，从assets导入默认题库
-                importDefaultQuestions()
+                // 题库为空，从assets导入新题库
+                importDefaultQuestions("questions_new.json")
+            } else {
+                // 检查是否需要升级题库（旧版本少于100题）
+                if (existingCount < 50) {
+                    questionDao.deleteAllQuestions()
+                    importDefaultQuestions("questions_new.json")
+                }
             }
         }
     }
@@ -39,16 +45,16 @@ class QuestionRepositoryInitializer @Inject constructor(
     suspend fun forceReimport() {
         withContext(Dispatchers.IO) {
             questionDao.deleteAllQuestions()
-            importDefaultQuestions()
+            importDefaultQuestions("questions_new.json")
         }
     }
     
     /**
-     * 从assets导入默认30道奥数题
+     * 从assets导入题库
      */
-    private suspend fun importDefaultQuestions() {
+    private suspend fun importDefaultQuestions(fileName: String) {
         val questions = try {
-            JsonQuestionImporter.importFromAssets(context, "questions.json")
+            JsonQuestionImporter.importFromAssets(context, fileName)
         } catch (e: Exception) {
             // 如果文件不存在，使用内置备用题库
             getFallbackQuestions()

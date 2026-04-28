@@ -1,90 +1,125 @@
-# 🎯 奥数闯关王 - Android MVP 版本
+# 奥数闯关王 (Math Olympiad King)
 
-## 📱 项目介绍
-一款专为小学生设计的数学奥数复习游戏化应用，采用 Kotlin + Jetpack Compose + Room + Hilt 技术栈开发。
+一款专为小学生设计的少儿奥数学习App，采用 Kotlin + Jetpack Compose + Hilt + Room 技术栈开发。
 
-## ✨ 核心功能（MVP 版本）
-- ✅ **每日答题**：每天随机抽取 3 道不重复的奥数题（计算/逻辑/图形三类题型）
-- ✅ **积分系统**：答对得 1 分，即时反馈鼓励语
-- ✅ **数据持久化**：使用 Room 数据库存储用户积分、勋章、答题历史
-- ✅ **成长激励**：勋章解锁系统（新手入门、坚持之星等）
-- ✅ **精美 UI**：符合儿童审美的明亮色彩和圆角设计
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.10-A97BFF?logo=kotlin)
+![Android](https://img.shields.io/badge/Android-8.0+-3DDC84?logo=android)
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
 
-## 🏗️ 技术架构
-```
-MVVM + Clean Architecture
-├── Data Layer (Room Database, Repository)
-├── Domain Layer (Use Cases)
-└── Presentation Layer (Jetpack Compose UI)
-```
+## ✨ 功能特性
 
-## 📦 依赖清单
-- AndroidX Core & Lifecycle
-- Jetpack Compose (UI)
-- Room Database (SQLite ORM)
-- Hilt (Dependency Injection)
-- Kotlin Coroutines + Flow
+### 🎮 闯关学习
+- 每日3道精选题目，轻松无负担
+- 积分系统和连续答题 streak
+- 丰富的成就勋章系统
 
-## 🚀 快速开始
-1. **打开项目**：用 Android Studio 打开 `math-olympiad-kotlin` 目录
-2. **同步 Gradle**：File -> Sync Project with Gradle Files
-3. **运行应用**：点击 Run 按钮或按 Shift+F10
-4. **首次启动**：会自动创建默认用户和基础题库（已在 `assets/questions.json`）
+### 📝 智能题库
+- 覆盖计算、逻辑、图形等多元题型
+- 难度阶梯式分级
+- 基于艾宾浩斯的错题复习
 
-## 📂 项目结构
+### 🧠 AI 趣味陪伴
+- 鼓励式反馈，培养学习兴趣
+- 趣味解题讲解
+- 个性化学习建议
+
+### 📊 数据可视化
+- 学习进度一目了然
+- 周榜激励学习动力
+- 错题分类统计
+
+## 🛠 技术栈
+
+| 类别 | 技术 |
+|------|------|
+| 编程语言 | Kotlin 1.9.10 |
+| UI 框架 | Jetpack Compose |
+| 依赖注入 | Hilt |
+| 数据库 | Room |
+| 异步处理 | Kotlin Coroutines + Flow |
+| 架构模式 | MVVM + Clean Architecture |
+
+## 📁 项目结构
+
 ```
 app/
-├── data/                    # 数据层
-│   ├── local/
-│   │   ├── dao/            # Data Access Object
-│   │   ├── database/       # Room Database
-│   │   └── model/          # 实体类（User, Question, Badge）
-│   └── repository/         # Repository 仓库
-├── domain/                  # 业务逻辑层
-│   └── usecase/            # UseCase 用例
-├── presentation/           # UI 层
-│   ├── ui/
-│   │   ├── home/          # 首页
-│   │   ├── quiz/          # 答题页
-│   │   └── profile/       # 个人中心
-│   ├── theme/             # 主题配置
-│   └── navigation/        # 导航结构
-├── di/                     # Hilt DI 模块
-└── ui/                     # MainActivity
+├── src/main/java/com/example/matholympiad/
+│   ├── data/              # 数据层 (Repository, DAO, Models)
+│   ├── domain/            # 领域层 (UseCases, Business Logic)
+│   ├── presentation/      # 表现层 (ViewModels, Screens, UI)
+│   └── di/                # 依赖注入模块
+├── src/test/              # 单元测试
+│   ├── domain/usecase/    # UseCase 测试
+│   ├── data/repository/   # Repository 测试
+│   └── presentation/      # ViewModel 测试
+└── src/androidTest/       # 仪器测试
 ```
 
-## 🎨 UI 设计规范
-- **主色调**：活力橙 (#FF8C42)、天空蓝 (#5FB3D9)
-- **圆角半径**：12-16dp（卡片、按钮）
-- **字体大小**：标题 28sp，正文 16-18sp
-- **图标风格**：Emoji + Material Icons 混合使用
+## 🚀 快速开始
 
-## 📝 题库格式示例
-```json
-{
-  "id": "math_001",
-  "content": "小明有 5 个苹果，吃了 2 个，还剩几个？",
-  "options": ["3 个", "4 个", "5 个", "2 个"],
-  "correctAnswer": 0,
-  "explanation": "5 - 2 = 3，所以答案是 3 个。",
-  "type": "CALCULATION",
-  "difficulty": 1
-}
+### 环境要求
+- Android Studio Giraffe (2022.3.1) 或更高版本
+- JDK 17
+- Android SDK 34
+
+### 编译步骤
+
+```bash
+# 克隆仓库
+git clone https://github.com/ChrisAppollo/math-olympiad.git
+cd math-olympiad
+
+# 编译 Debug 版本
+./gradlew assembleDebug
+
+# 编译 Release 版本 (需要签名配置)
+./gradlew assembleRelease
 ```
 
-## 🔧 下一步开发计划
-- [ ] 完整实现 QuizViewModel 中的答题逻辑
-- [ ] 集成 Lottie 动画（答对/答错反馈）
-- [ ] 完善勋章墙 UI 展示
-- [ ] 添加排行榜功能
-- [ ] 题库导入/导出功能
-- [ ] 单元测试覆盖核心业务逻辑
+## 🧪 测试
 
-## 👨‍💻 开发者说明
-- **使用模型**：qwen3.5-35b-a3b（全程使用该模型）
-- **最低 SDK**：24 (Android 7.0)
-- **目标 SDK**：34 (Android 14)
-- **语言**：Kotlin 1.9.20
+项目包含完整的单元测试套件：
 
-## 📄 许可证
-本项目仅供学习使用，版权归 Nous Research 所有。
+```bash
+# 运行所有单元测试
+./gradlew test
+
+# 运行特定模块测试
+./gradlew :app:testDebugUnitTest
+```
+
+### 测试覆盖
+- ✅ UseCases 业务逻辑测试
+- ✅ ViewModels 状态管理测试  
+- ✅ Repository 数据层测试
+- ✅ 间隔重复算法测试
+- ✅ AI 趣味讲解生成测试
+
+## 📱 截图
+
+| 首页 | 答题 | 反馈 |
+|:-----:|:----:|:----:|
+| ![Home](screenshots/home.png) | ![Quiz](screenshots/quiz.png) | ![Feedback](screenshots/feedback.png) |
+
+| 错题本 | 排行榜 | 个人 |
+|:------:|:------:|:----:|
+| ![Wrong](screenshots/wrong.png) | ![Leaderboard](screenshots/leaderboard.png) | ![Profile](screenshots/profile.png) |
+
+## 📦 发布版本
+
+| 版本 | 日期 | 说明 |
+|------|------|------|
+| v1.0.0 | 2026-04-27 | 首次发布，完整功能上线 |
+
+## 📄 开源许可
+
+本项目基于 MIT 许可证开源 - 详见 [LICENSE](LICENSE) 文件
+
+## 📮 联系我们
+
+- **作者:** ChrisAppollo
+- **项目:** https://github.com/ChrisAppollo/math-olympiad
+
+---
+
+**Built with ❤️ by Nous Research**

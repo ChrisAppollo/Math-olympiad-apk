@@ -12,7 +12,7 @@ import com.example.matholympiad.presentation.ui.home.HomeViewModel
 import com.example.matholympiad.presentation.ui.profile.ProfileScreen
 import com.example.matholympiad.presentation.ui.profile.ProfileViewModel
 import com.example.matholympiad.presentation.ui.quiz.QuizScreen
-import com.example.matholympiad.presentation.ui.quiz.QuizViewModel
+import com.example.matholympiad.presentation.viewmodel.QuizViewModel
 import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersScreen
 import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersViewModel
 
@@ -43,23 +43,24 @@ fun AppNavGraph(
             )
         }
 
-    composable(Quiz.route) {
-        val viewModel: QuizViewModel = hiltViewModel()
-        val uiState by viewModel.uiState.collectAsState()
-        
-        QuizScreen(
-            uiState = uiState,
-                onAnswerSelected = { index -> viewModel.selectAnswer(index) },
-                onSubmitClick = { viewModel.submitAnswer() },
+composable(Quiz.route) {
+            val viewModel: QuizViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+            
+            QuizScreen(
+                uiState = uiState,
+                userAnswer = viewModel.userAnswer,
+                onAnswerChanged = { viewModel.onAnswerChanged(it) },
+                onSubmitClick = { viewModel.onSubmitClick() },
                 onNextClick = { 
                     if (uiState.quizCompleted) {
-                        viewModel.completeQuiz()
+                        viewModel.resetQuiz()
                         navController.popBackStack()
                     } else {
-                        viewModel.nextQuestion()
+                        viewModel.onNextClick()
                     }
                 },
-                onHintClick = { viewModel.showHint() },
+                onHintClick = { viewModel.onHintClick() },
                 onBackClick = { 
                     viewModel.resetQuiz()
                     navController.popBackStack() 

@@ -40,14 +40,16 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(loading = true)
             try {
-                val user = userRepo.getDefaultUser()
-                _uiState.value = _uiState.value.copy(
-                    totalScore = user.totalScore,
-                    todayCompleted = user.todayQuestionsCompleted,
-                    badgesCount = user.getBadgesList().size,
-                    isQuizAvailable = user.todayQuestionsCompleted < 3,
-                    loading = false
-                )
+ val user = userRepo.getDefaultUser()
+ val badges = user.getBadgesList()
+ _uiState.value = _uiState.value.copy(
+ totalScore = user.totalScore,
+ todayCompleted = user.todayQuestionsCompleted,
+ badgesCount = badges.size,
+ unlockedBadges = badges,
+ isQuizAvailable = user.todayQuestionsCompleted < 3,
+ loading = false
+ )
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uiState.value = _uiState.value.copy(loading = false)

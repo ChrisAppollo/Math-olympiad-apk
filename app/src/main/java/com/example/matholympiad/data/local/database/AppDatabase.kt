@@ -15,14 +15,14 @@ import com.example.matholympiad.data.local.model.User
  * Room 数据库主类
  */
 @Database(
- entities = [
- User::class,
- Question::class,
- Badge::class,
- TodayQuestion::class
- ],
- version = 3,
- exportSchema = false
+    entities = [
+        User::class,
+        Question::class,
+        Badge::class,
+        TodayQuestion::class
+    ],
+    version = 4,
+    exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
  
@@ -40,7 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "math_olympiad_database"
                 )
- .addMigrations(DatabaseMigrations.MIGRATION_1_2, DatabaseMigrations.MIGRATION_2_3)
+ .addMigrations(DatabaseMigrations.MIGRATION_1_2, DatabaseMigrations.MIGRATION_2_3, DatabaseMigrations.MIGRATION_3_4)
  .fallbackToDestructiveMigration() // 作为后备方案
  .build()
  
