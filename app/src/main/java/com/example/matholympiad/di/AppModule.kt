@@ -3,6 +3,7 @@ package com.example.matholympiad.di
 import android.content.Context
 import androidx.room.Room
 import com.example.matholympiad.data.local.database.AppDatabase
+import com.example.matholympiad.data.local.database.DatabaseMigrations
 import com.example.matholympiad.data.local.dao.UserDao
 import com.example.matholympiad.data.local.dao.QuestionDao
 import com.example.matholympiad.data.local.dao.AnswerHistoryDao
@@ -24,15 +25,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
     
-    @Provides
-    @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
-            context.applicationContext,
-            AppDatabase::class.java,
-            "math_olympiad_database"
-        ).build()
-    }
+@Provides
+@Singleton
+fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
+return Room.databaseBuilder(
+context.applicationContext,
+AppDatabase::class.java,
+"math_olympiad_database"
+)
+.addMigrations(DatabaseMigrations.MIGRATION_1_2, DatabaseMigrations.MIGRATION_2_3, DatabaseMigrations.MIGRATION_3_4)
+.fallbackToDestructiveMigration()
+.build()
+}
     
     @Provides
     @Singleton
