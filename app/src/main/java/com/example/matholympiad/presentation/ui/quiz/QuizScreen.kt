@@ -1,5 +1,7 @@
 package com.example.matholympiad.presentation.ui.quiz
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.ui.ExperimentalComposeUiApi
 import com.example.matholympiad.presentation.viewmodel.QuizUiState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -28,7 +30,7 @@ import com.example.matholympiad.presentation.ui.components.CorrectAnswerAnimatio
 import com.example.matholympiad.presentation.ui.components.WrongAnswerAnimation
 import com.example.matholympiad.presentation.ui.components.QuizCompletionAnimation
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun QuizScreen(
     uiState: QuizUiState,
