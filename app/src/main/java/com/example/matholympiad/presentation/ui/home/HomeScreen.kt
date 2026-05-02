@@ -19,7 +19,8 @@ fun HomeScreen(
     uiState: HomeUiState,
     onQuizClick: () -> Unit,
     onProfileClick: () -> Unit,
-    onLeaderboardClick: () -> Unit
+    onLeaderboardClick: () -> Unit,
+    onWrongAnswersClick: () -> Unit = {}
 ) {
     Scaffold(
         containerColor = AppColors.BackgroundGray
@@ -103,9 +104,22 @@ fun HomeScreen(
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // 个人资料按钮
+ Spacer(modifier = Modifier.height(16.dp))
+ 
+ // 错题本按钮
+ OutlinedButton(
+     onClick = onWrongAnswersClick,
+     modifier = Modifier
+         .fillMaxWidth()
+         .height(56.dp),
+     shape = RoundedCornerShape(12.dp)
+ ) {
+     Text("📚 错题本", style = MaterialTheme.typography.titleMedium)
+ }
+ 
+ Spacer(modifier = Modifier.height(16.dp))
+ 
+ // 个人资料按钮
             OutlinedButton(
                 onClick = onProfileClick,
                 modifier = Modifier

@@ -1,179 +1,163 @@
 package com.example.matholympiad.presentation.ui.wronganswers
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import com.example.matholympiad.presentation.theme.AppColors
+import com.example.matholympiad.data.local.model.AnswerHistory
+import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersUiState
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
+/**
+ * 错题本主界面
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WrongAnswersScreen(
-    onBack: () -> Unit,
-    viewModel: WrongAnswersViewModel = hiltViewModel()
+    viewModel: WrongAnswersViewModel,
+    onNavigateBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFFFF8E7))
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // 顶部导航栏
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        "📚 错题本",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                },
+    val uiState: WrongAnswersUiState by viewModel.uiState.collectAsState()
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("错题本") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = "返回",
-                            tint = Color.White
-                        )
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.loadWrongAnswers() }) {
-                        Icon(
-                            imageVector = Icons.Filled.Refresh,
-                            contentDescription = "刷新",
-                            tint = Color.White
-                        )
+                    if (uiState.reviewQuestions.isNotEmpty() && !uiState.showReviewMode) {
+                        IconButton(onClick = { viewModel.startReviewMode() }) {
+                            Icon(Icons.Default.PlayArrow, contentDescription = "开始复习")
+                        }
                     }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = AppColors.PrimaryOrange
-                )
+                }
             )
-
-            // 统计信息
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    StatItem(
-                        value = "${uiState.wrongQuestions.size}",
-                        label = "错题总数"
-                    )
-                    StatItem(
-                        value = "${uiState.wrongQuestions.sumOf { it.wrongCount }}",
-                        label = "累计错误"
-                    )
-                    StatItem(
-                        value = if (uiState.wrongQuestions.isNotEmpty()) {
-                            "${uiState.wrongQuestions.sumOf { it.wrongCount } / uiState.wrongQuestions.size}"
-                        } else "0",
-                        label = "平均错误次数"
-                    )
-                }
-            }
-
-            // 错题列表
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = AppColors.PrimaryOrange)
-                    }
-                }
-                uiState.error != null -> {
-                    ErrorView(message = uiState.error!!) {
-                        viewModel.loadWrongAnswers()
-                    }
-                }
-                uiState.wrongQuestions.isEmpty() -> {
-                    EmptyWrongAnswersView()
-                }
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(
-                            items = uiState.wrongQuestions,
-                            key = { it.question.id }
-                        ) { item ->
-                            WrongAnswerCard(
-                                item = item,
-                                onClick = { viewModel.selectQuestion(item) }
-                            )
-                        }
-                        // 底部留白
-                        item {
-                            Spacer(modifier = Modifier.height(80.dp))
-                        }
-                    }
-                }
-            }
         }
-
-        // 错题详情弹窗
-        if (uiState.showDetailDialog && uiState.selectedQuestion != null) {
-            WrongAnswerDetailDialog(
-                item = uiState.selectedQuestion!!,
-                onDismiss = { viewModel.dismissDetailDialog() }
-            )
+    ) { paddingValues ->
+        when {
+            uiState.showReviewMode -> {
+                WrongAnswerReviewMode(
+                    uiState = uiState,
+                    onAnswerSubmit = { viewModel.submitReviewAnswer(it) },
+                    onExit = { viewModel.exitReviewMode() }
+                )
+            }
+            else -> {
+                WrongAnswersList(
+                    uiState = uiState,
+                    onQuestionClick = { /* TODO: 显示题目详情 */ },
+                    onDelete = { viewModel.deleteQuestion(it) }
+                )
+            }
         }
     }
 }
 
+/**
+ * 错题列表界面
+ */
 @Composable
-private fun StatItem(value: String, label: String) {
+fun WrongAnswersList(
+    uiState: WrongAnswersUiState,
+    onQuestionClick: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
+        // 统计卡片
+        StatsCard(
+            totalWrong = uiState.totalWrongCount,
+            dueReview = uiState.dueReviewCount
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // 待复习提醒
+        if (uiState.dueReviewCount > 0) {
+            ReviewReminderCard(
+                count = uiState.dueReviewCount,
+                onStartReview = { /* TODO: 触发复习 */ }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+        
+        // 错题列表
+        if (uiState.wrongAnswers.isEmpty()) {
+            EmptyState()
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(uiState.wrongAnswers) { history ->
+                    WrongAnswerItem(
+                        history = history,
+                        onClick = { onQuestionClick(history.questionId) },
+                        onDelete = { onDelete(history.questionId) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 统计卡片
+ */
+@Composable
+fun StatsCard(totalWrong: Int, dueReview: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF5F5F5))
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        StatItem(
+            label = "总错题",
+            value = totalWrong,
+            color = Color(0xFF2196F3)
+        )
+        
+        StatItem(
+            label = "待复习",
+            value = dueReview,
+            color = if (dueReview > 0) Color(0xFFFF9800) else Color(0xFF4CAF50)
+        )
+    }
+}
+
+@Composable
+fun StatItem(label: String, value: Int, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = value,
-            fontSize = 32.sp,
+            text = value.toString(),
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = AppColors.PrimaryOrange
+            color = color
         )
         Text(
             text = label,
@@ -183,335 +167,249 @@ private fun StatItem(value: String, label: String) {
     }
 }
 
+/**
+ * 复习提醒卡片
+ */
 @Composable
-private fun EmptyWrongAnswersView() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun ReviewReminderCard(count: Int, onStartReview: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onStartReview),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFFFF3E0)
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Filled.Warning,
+                imageVector = Icons.Default.Notifications,
                 contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color(0xFFFFD93D)
+                tint = Color(0xFFFF9800),
+                modifier = Modifier.size(32.dp)
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "暂无错题记录",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray
-            )
-            Text(
-                "继续保持，答对每一题！",
-                fontSize = 16.sp,
-                color = Color.Gray
-            )
-        }
-    }
-}
-
-@Composable
-private fun ErrorView(message: String, onRetry: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Warning,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color.Red
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                message,
-                fontSize = 16.sp,
-                color = Color.Red
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.PrimaryOrange
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "有 $count 道题目需要复习",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
-            ) {
-                Text("重试")
+                Text(
+                    text = "基于艾宾浩斯记忆曲线，及时复习效果更好",
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+            }
+            
+            Button(onClick = onStartReview) {
+                Text("开始复习")
             }
         }
     }
 }
 
+/**
+ * 错题项
+ */
 @Composable
-private fun WrongAnswerCard(
-    item: WrongAnswerItem,
-    onClick: () -> Unit
+fun WrongAnswerItem(
+    history: AnswerHistory,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        shape = RoundedCornerShape(8.dp)
     ) {
-        // 错误次数标签（位于左上角）
-        if (item.wrongCount > 1) {
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .background(AppColors.PrimaryOrange, RoundedCornerShape(topStart = 12.dp, bottomEnd = 12.dp))
-                    .align(Alignment.Start),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "${item.wrongCount}",
-                    fontSize = 12.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // 题型标签
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
+                .padding(12.dp),
+verticalAlignment = Alignment.CenterVertically
+) {
+    // 图标
+    Icon(
+        imageVector = Icons.Default.Info,
+        contentDescription = null,
+        tint = Color(0xFFF44336),
+        modifier = Modifier.size(32.dp)
+    )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // 信息
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = when (item.question.type) {
-                        "ARITHMETIC" -> "🔢 计算题"
-                        "LOGIC" -> "🧩 逻辑题"
-                        "GEOMETRY" -> "📐 几何题"
-                        "WORD" -> "📖 应用题"
-                        else -> "📝 ${item.question.type}"
-                    },
+                    text = "错题 #${history.historyId}",
                     fontSize = 14.sp,
-                    color = AppColors.SkyBlue,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Bold
                 )
-                DifficultyBadge(difficulty = item.question.difficulty)
+                Text(
+                    text = formatTime(history.answeredAt),
+                    fontSize = 12.sp,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "复习阶段：${history.reviewStage}/${AnswerHistory.MAX_REVIEW_STAGE}",
+                    fontSize = 12.sp,
+                    color = Color(0xFF607D8B)
+                )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 题目内容
-            Text(
-                text = item.question.content,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 用户答案和正确答案对比
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        "你的答案",
-                        fontSize = 12.sp,
-                        color = Color.Red
-                    )
-                    Text(
-                        item.userAnswer,
-                        fontSize = 16.sp,
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Column(
-                    horizontalAlignment = Alignment.End
-                ) {
-                    Text(
-                        "正确答案",
-                        fontSize = 12.sp,
-                        color = Color(0xFF4CAF50)
-                    )
-                    Text(
-                        item.correctAnswerText,
-                        fontSize = 16.sp,
-                        color = Color(0xFF4CAF50),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            
+            // 删除按钮
+            IconButton(onClick = onDelete) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "删除",
+                    tint = Color.Gray
+                )
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // 错误时间
-            Text(
-                text = "上次做错: ${formatTime(item.wrongTime)}",
-                fontSize = 12.sp,
-                color = Color.Gray
-            )
         }
     }
 }
 
+/**
+ * 复习模式界面
+ */
 @Composable
-private fun DifficultyBadge(difficulty: Int) {
-    val (color, label) = when (difficulty) {
-        1 -> Color(0xFF4CAF50) to "简单"
-        2 -> Color(0xFF8BC34A) to "较易"
-        3 -> Color(0xFFFFC107) to "中等"
-        4 -> Color(0xFFFF9800) to "较难"
-        else -> Color(0xFFF44336) to "困难"
-    }
-    Box(
+fun WrongAnswerReviewMode(
+    uiState: WrongAnswersUiState,
+    onAnswerSubmit: (Int) -> Unit,
+    onExit: () -> Unit
+) {
+    val currentQuestion = uiState.currentReviewQuestion
+    
+    Column(
         modifier = Modifier
-            .border(1.dp, color, RoundedCornerShape(4.dp))
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // 进度指示器
         Text(
-            label,
-            fontSize = 12.sp,
-            color = color
+            text = "复习进度：${uiState.reviewIndex + 1} / ${uiState.reviewTotal}",
+            fontSize = 16.sp,
+            color = Color.Gray
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        if (currentQuestion != null) {
+            // 题目卡片
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFE3F2FD)
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "请回忆这道题的答案",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "题目 ID: ${currentQuestion.questionId}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // 答案选项（这里需要获取题目详情）
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                listOf(0, 1, 2, 3).forEach { index ->
+                    OutlinedButton(
+                        onClick = { onAnswerSubmit(index) },
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(80.dp)
+                    ) {
+                        Text("选项${index + 1}")
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.weight(1f))
+        
+        // 退出按钮
+        if (uiState.reviewSuccess != null) {
+            Button(
+                onClick = onExit,
+                modifier = Modifier.width(200.dp)
+            ) {
+                Text("退出复习")
+            }
+        }
+    }
+}
+
+/**
+ * 空状态
+ */
+@Composable
+fun EmptyState() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.CheckCircle,
+            contentDescription = null,
+            tint = Color(0xFF4CAF50),
+            modifier = Modifier.size(64.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "太棒了！",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
+        )
+        
+        Text(
+            text = "目前没有错题记录",
+            fontSize = 16.sp,
+            color = Color.Gray
         )
     }
 }
 
-@Composable
-private fun WrongAnswerDetailDialog(
-    item: WrongAnswerItem,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "📝 错题详情",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                if (item.wrongCount > 1) {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                Color(0xFFFF6B6B),
-                                RoundedCornerShape(4.dp)
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            "错过${item.wrongCount}次",
-                            fontSize = 12.sp,
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                // 题目
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color(0xFFF5F5F5),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = item.question.content,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 答案对比
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            "你的答案 ❌",
-                            fontSize = 14.sp,
-                            color = Color.Red
-                        )
-                        Text(
-                            item.userAnswer,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Red
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        Text(
-                            "正确答案 ✅",
-                            fontSize = 14.sp,
-                            color = Color(0xFF4CAF50)
-                        )
-                        Text(
-                            item.correctAnswerText,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF4CAF50)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 解析
-                Text(
-                    "💡 题目解析",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppColors.PrimaryOrange
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = item.question.explanation,
-                    fontSize = 14.sp,
-                    color = Color.DarkGray
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.PrimaryOrange
-                )
-            ) {
-                Text("好的，我知道了")
-            }
-        },
-        containerColor = Color.White
-    )
-}
-
+/**
+ * 格式化时间
+ */
 private fun formatTime(timestamp: Long): String {
-    val sdf = SimpleDateFormat("MM-dd HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
+    val dateTime = LocalDateTime.ofInstant(
+        java.time.Instant.ofEpochMilli(timestamp),
+        java.time.ZoneId.systemDefault()
+    )
+    return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
 }

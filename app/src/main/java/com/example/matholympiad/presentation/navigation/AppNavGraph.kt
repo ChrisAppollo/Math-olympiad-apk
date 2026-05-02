@@ -45,12 +45,13 @@ fun AppNavGraph(
             viewModel.refreshData()
         }
         
-        HomeScreen(
-            uiState = uiState,
-            onQuizClick = { navController.navigate(Quiz.route) },
-            onProfileClick = { navController.navigate(Profile.route) },
-            onLeaderboardClick = { /* TODO: 实现排行榜 */ }
-        )
+ HomeScreen(
+     uiState = uiState,
+     onQuizClick = { navController.navigate(Quiz.route) },
+     onProfileClick = { navController.navigate(Profile.route) },
+     onLeaderboardClick = { /* TODO: 实现排行榜 */ },
+     onWrongAnswersClick = { navController.navigate(WrongAnswers.route) }
+ )
     }
 
 composable(Quiz.route) {
@@ -95,11 +96,12 @@ composable(Quiz.route) {
             )
         }
 
-        composable(WrongAnswers.route) {
-            val viewModel: WrongAnswersViewModel = hiltViewModel()
-            WrongAnswersScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+ composable(WrongAnswers.route) {
+     val viewModel: WrongAnswersViewModel = hiltViewModel()
+     WrongAnswersScreen(
+         viewModel = viewModel,
+         onNavigateBack = { navController.popBackStack() }
+     )
+ }
     }
 }
