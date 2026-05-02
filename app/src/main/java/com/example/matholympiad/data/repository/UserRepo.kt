@@ -2,6 +2,7 @@ package com.example.matholympiad.data.repository
 
 import com.example.matholympiad.data.local.dao.UserDao
 import com.example.matholympiad.data.local.model.AnswerRecord
+import com.example.matholympiad.data.local.model.AppConstants
 import com.example.matholympiad.data.local.model.Badge
 import com.example.matholympiad.data.local.model.TodayQuestion
 import com.example.matholympiad.data.local.model.User
@@ -13,16 +14,18 @@ import kotlinx.coroutines.flow.Flow
 class UserRepo(private val userDao: UserDao) {
  
  companion object {
- const val DEFAULT_USER_ID = "student_001"
+ const val DEFAULT_USER_ID = AppConstants.DEFAULT_USER_ID
  }
  
  /**
  * 获取或创建默认用户
+ * 自动检查日期，如果是新的一天则重置今日答题状态
  */
  suspend fun getDefaultUser(): User {
  var user = userDao.getUser(DEFAULT_USER_ID)
- if (user == null) {
  val todayDate = getCurrentDate()
+ 
+ if (user == null) {
  user = User(
  userId = DEFAULT_USER_ID,
  totalScore = 0,
@@ -34,6 +37,15 @@ class UserRepo(private val userDao: UserDao) {
  totalCorrect = 0
  )
  userDao.insertUser(user)
+ } else {
+ // 检查是否是新的一天，如果是则重置今日答题状态
+ if (user.lastLoginDate != todayDate) {
+ user = user.copy(
+ lastLoginDate = todayDate,
+ todayQuestionsCompleted = 0
+ )
+ userDao.updateUser(user)
+ }
  }
  return user
  }

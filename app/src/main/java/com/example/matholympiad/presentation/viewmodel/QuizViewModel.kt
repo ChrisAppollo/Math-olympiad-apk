@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.local.model.Question
 import com.example.matholympiad.data.repository.QuestionRepo
 import com.example.matholympiad.data.repository.UserRepo
+import com.example.matholympiad.domain.usecase.CheckBadges
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,13 +29,15 @@ data class QuizUiState(
  val hintText: String = "",
  val explanation: String = "",
  val encouragement: String = "",
- val quizCompleted: Boolean = false
+ val quizCompleted: Boolean = false,
+ val savedProgress: Boolean = false // 新增：已保存进度状态
 )
 
 @HiltViewModel
 class QuizViewModel @Inject constructor(
  private val questionRepo: QuestionRepo,
- private val userRepo: UserRepo
+ private val userRepo: UserRepo,
+ private val checkBadges: CheckBadges
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizUiState())
@@ -89,6 +92,15 @@ class QuizViewModel @Inject constructor(
  viewModelScope.launch {
  userRepo.addPoints(earnedPoints)
  userRepo.updateTodayCompletedCount(_uiState.value.currentQuestionIndex + 1)
+ // 更新答题统计（用于正确率计算）
+ userRepo.updateUserStats(UserRepo.DEFAULT_USER_ID, isAnswerCorrect)
+ 
+ // 检查并解锁新勋章
+ val user = userRepo.getDefaultUser()
+ val newBadges = checkBadges(user)
+ if (newBadges.isNotEmpty()) {
+ // TODO: 可以显示勋章解锁提示
+ }
  }
  
  _uiState.update { state ->
@@ -135,16 +147,32 @@ class QuizViewModel @Inject constructor(
         }
     }
 
-    fun onHintClick() {
-        val currentQuestion = _uiState.value.currentQuestion ?: return
-        
-        _uiState.update {
-            it.copy(
-                hintShowing = true,
-                hintText = currentQuestion.hint
-            )
-        }
-    }
+ fun onHintClick() {
+ val currentQuestion = _uiState.value.currentQuestion ?: return
+ 
+ _uiState.update {
+ it.copy(
+ hintShowing = true,
+ hintText = currentQuestion.hint
+ )
+ }
+ }
+
+ fun onEarlyFinishClick() {
+ // 保存当前答题进度（已完成的题目数）
+ val completedCount = _uiState.value.currentQuestionIndex
+ viewModelScope.launch {
+ userRepo.updateTodayCompletedCount(completedCount)
+ }
+ 
+ // 标记为已保存进度并重置
+ _uiState.update {
+ it.copy(
+ savedProgress = true,
+ quizCompleted = true // 标记为完成以触发返回首页逻辑
+ )
+ }
+ }
 
  fun resetQuiz() {
  correctStreak = 0

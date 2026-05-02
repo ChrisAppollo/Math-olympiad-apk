@@ -33,13 +33,14 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun QuizScreen(
-    uiState: QuizUiState,
-    userAnswer: String,
-    onAnswerChanged: (String) -> Unit,
-    onSubmitClick: () -> Unit,
-    onNextClick: () -> Unit,
-    onHintClick: () -> Unit,
-    onBackClick: () -> Unit
+ uiState: QuizUiState,
+ userAnswer: String,
+ onAnswerChanged: (String) -> Unit,
+ onSubmitClick: () -> Unit,
+ onNextClick: () -> Unit,
+ onHintClick: () -> Unit,
+ onBackClick: () -> Unit,
+ onEarlyFinishClick: () -> Unit // 新增：提前结束回调
 ) {
     // Debug: Log UI state changes
     LaunchedEffect(uiState) {
@@ -246,11 +247,31 @@ LaunchedEffect(uiState.currentQuestionIndex) {
                     )
                 }
 
-                // 占位器顶到底部
-                Spacer(modifier = Modifier.weight(1f))
+// 占位器顶到底部
+ Spacer(modifier = Modifier.weight(1f))
 
-                // 底部操作按钮
-                if (!uiState.quizCompleted) {
+ // 提前结束按钮（仅在答题过程中显示）
+ if (!uiState.quizCompleted && !uiState.feedbackShowing) {
+ Box(
+ modifier = Modifier
+ .fillMaxWidth()
+ .height(48.dp)
+ .background(AppColors.TextGray.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
+ .clickable { onEarlyFinishClick() },
+ contentAlignment = Alignment.Center
+ ) {
+ Text(
+ text = "⏹️ 提前结束（保存进度并返回）",
+ fontSize = 14.sp,
+ fontWeight = FontWeight.Medium,
+ color = AppColors.TextDark
+ )
+ }
+ Spacer(modifier = Modifier.height(12.dp))
+ }
+
+ // 底部操作按钮
+ if (!uiState.quizCompleted) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)

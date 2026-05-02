@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.repository.QuestionRepositoryInitializer
 import com.example.matholympiad.data.repository.UserRepo
 import com.example.matholympiad.domain.usecase.CheckBadges
+import com.example.matholympiad.data.local.model.AppConstants
 import com.example.matholympiad.domain.usecase.GetTodayQuestions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,14 +15,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val userRepo: UserRepo,
-    private val getTodayQuestions: GetTodayQuestions,
-    private val checkBadges: CheckBadges,
-    private val questionInitializer: QuestionRepositoryInitializer
+ private val userRepo: UserRepo,
+ private val getTodayQuestions: GetTodayQuestions,
+ private val checkBadges: CheckBadges,
+ private val questionInitializer: QuestionRepositoryInitializer
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(HomeUiState())
-    val uiState: StateFlow<HomeUiState> = _uiState
+ private val _uiState = MutableStateFlow(HomeUiState(maxTodayQuestions = AppConstants.DAILY_QUESTION_COUNT))
+ val uiState: StateFlow<HomeUiState> = _uiState
 
     init {
         initializeData()
@@ -47,7 +48,7 @@ class HomeViewModel @Inject constructor(
  todayCompleted = user.todayQuestionsCompleted,
  badgesCount = badges.size,
  unlockedBadges = badges,
- isQuizAvailable = user.todayQuestionsCompleted < 3,
+ isQuizAvailable = user.todayQuestionsCompleted < AppConstants.DAILY_QUESTION_COUNT,
  loading = false
  )
             } catch (e: Exception) {
@@ -69,6 +70,12 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    fun refreshData() {
+        viewModelScope.launch {
+            loadUserData()
         }
     }
 }

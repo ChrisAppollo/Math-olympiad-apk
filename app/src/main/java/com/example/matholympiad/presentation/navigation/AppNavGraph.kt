@@ -1,8 +1,10 @@
 package com.example.matholympiad.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,6 +17,8 @@ import com.example.matholympiad.presentation.ui.quiz.QuizScreen
 import com.example.matholympiad.presentation.viewmodel.QuizViewModel
 import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersScreen
 import com.example.matholympiad.presentation.ui.wronganswers.WrongAnswersViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 open class NavGraphRoute(val route: String)
 
@@ -32,41 +36,55 @@ fun AppNavGraph(
         navController = navController,
         startDestination = startDestination
     ) {
-        composable(Home.route) {
-            val viewModel: HomeViewModel = hiltViewModel()
-            val uiState by viewModel.uiState.collectAsState()
-            HomeScreen(
-                uiState = uiState,
-                onQuizClick = { navController.navigate(Quiz.route) },
-                onProfileClick = { navController.navigate(Profile.route) },
-                onLeaderboardClick = { /* TODO: 实现排行榜 */ }
-            )
+ composable(Home.route) {
+        val viewModel: HomeViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsState()
+        
+        // 每次进入首页时刷新数据
+        LaunchedEffect(Unit) {
+            viewModel.refreshData()
         }
+        
+        HomeScreen(
+            uiState = uiState,
+            onQuizClick = { navController.navigate(Quiz.route) },
+            onProfileClick = { navController.navigate(Profile.route) },
+            onLeaderboardClick = { /* TODO: 实现排行榜 */ }
+        )
+    }
 
 composable(Quiz.route) {
-            val viewModel: QuizViewModel = hiltViewModel()
-            val uiState by viewModel.uiState.collectAsState()
-            
-            QuizScreen(
-                uiState = uiState,
-                userAnswer = viewModel.userAnswer,
-                onAnswerChanged = { viewModel.onAnswerChanged(it) },
-                onSubmitClick = { viewModel.onSubmitClick() },
-                onNextClick = { 
-                    if (uiState.quizCompleted) {
-                        viewModel.resetQuiz()
-                        navController.popBackStack()
-                    } else {
-                        viewModel.onNextClick()
-                    }
-                },
-                onHintClick = { viewModel.onHintClick() },
-                onBackClick = { 
-                    viewModel.resetQuiz()
-                    navController.popBackStack() 
-                }
-            )
-        }
+ val viewModel: QuizViewModel = hiltViewModel()
+ val uiState by viewModel.uiState.collectAsState()
+ val coroutineScope = rememberCoroutineScope()
+ 
+ QuizScreen(
+ uiState = uiState,
+ userAnswer = viewModel.userAnswer,
+ onAnswerChanged = { viewModel.onAnswerChanged(it) },
+ onSubmitClick = { viewModel.onSubmitClick() },
+ onNextClick = { 
+ if (uiState.quizCompleted) {
+ viewModel.resetQuiz()
+ navController.popBackStack()
+ } else {
+ viewModel.onNextClick()
+ }
+ },
+ onHintClick = { viewModel.onHintClick() },
+ onBackClick = { 
+ viewModel.resetQuiz()
+ navController.popBackStack() 
+ },
+ onEarlyFinishClick = { 
+ coroutineScope.launch {
+ viewModel.onEarlyFinishClick()
+ delay(200)
+ navController.popBackStack()
+ }
+ }
+ )
+}
 
         composable(Profile.route) {
             val viewModel: ProfileViewModel = hiltViewModel()
