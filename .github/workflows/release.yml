@@ -1,0 +1,52 @@
+name: Android Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送 v* 标签时触发，例如 v1.0.0
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 解码 Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release-key.jks
+
+      - name: 构建 Release APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease \
+            -PKEYSTORE_PASSWORD="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -PKEY_ALIAS="${{ secrets.KEY_ALIAS }}" \
+            -PKEY_PASSWORD="${{ secrets.KEY_PASSWORD }}"
+
+      - name: 获取版本号
+        id: version
+        run: |
+          VERSION_NAME=$(grep -m 1 'versionName' app/build.gradle.kts | grep -oP '"\K[^"]+')
+          echo "version=$VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: 上传 Release APK
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

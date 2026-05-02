@@ -6,30 +6,35 @@ plugins {
 }
 
 android {
- namespace = "com.example.matholympiad"
- compileSdk = 34
+  namespace = "com.example.matholympiad"
+  compileSdk = 34
 
- defaultConfig {
- applicationId = "com.example.matholympiad"
- minSdk = 24
- targetSdk = 34
- versionCode = 1
- versionName = "1.0"
+  defaultConfig {
+    applicationId = "com.example.matholympiad"
+    minSdk = 24
+    targetSdk = 34
+    versionCode = 1
+    versionName = "1.0"
 
- testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
- vectorDrawables {
- useSupportLibrary = true
- }
- }
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    vectorDrawables {
+      useSupportLibrary = true
+    }
+  }
 
- signingConfigs {
- create("release") {
- storeFile = file("release-key.jks")
- storePassword = "math-app-2026"
- keyAlias = "matholympiad"
- keyPassword = "math-app-2026"
- }
- }
+  signingConfigs {
+    create("release") {
+      // 从环境变量或 Gradle 属性读取密钥信息（GitHub Actions 使用）
+      val keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: project.findProperty("KEYSTORE_PASSWORD") as String? ?: "math-app-2026"
+      val keyAlias = System.getenv("KEY_ALIAS") ?: project.findProperty("KEY_ALIAS") as String? ?: "matholympiad"
+      val keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD") as String? ?: "math-app-2026"
+      
+      storeFile = file("release-key.jks")
+      storePassword = keystorePassword
+      keyAlias = keyAlias
+      keyPassword = keyPassword
+    }
+  }
 
  buildTypes {
  release {
