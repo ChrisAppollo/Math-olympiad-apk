@@ -26,13 +26,13 @@ android {
     create("release") {
       // 从环境变量或 Gradle 属性读取密钥信息（GitHub Actions 使用）
       val keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: project.findProperty("KEYSTORE_PASSWORD") as String? ?: "math-app-2026"
-      val keyAlias = System.getenv("KEY_ALIAS") ?: project.findProperty("KEY_ALIAS") as String? ?: "matholympiad"
-      val keyPassword = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD") as String? ?: "math-app-2026"
+      val keyAliasName = System.getenv("KEY_ALIAS") ?: project.findProperty("KEY_ALIAS") as String? ?: "matholympiad"
+      val keyPasswordValue = System.getenv("KEY_PASSWORD") ?: project.findProperty("KEY_PASSWORD") as String? ?: "math-app-2026"
       
       storeFile = file("release-key.jks")
       storePassword = keystorePassword
-      keyAlias = keyAlias
-      keyPassword = keyPassword
+      keyAlias = keyAliasName
+      keyPassword = keyPasswordValue
     }
   }
 
