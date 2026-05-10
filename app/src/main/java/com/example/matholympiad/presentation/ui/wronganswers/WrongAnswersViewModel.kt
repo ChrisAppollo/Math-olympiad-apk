@@ -9,39 +9,42 @@ import com.example.matholympiad.domain.usecase.GetTodayReviewQuestions
 import com.example.matholympiad.domain.usecase.GetWrongAnswerStats
 import com.example.matholympiad.domain.usecase.MarkAsReviewed
 import com.example.matholympiad.domain.usecase.RecordAnswerResult
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * 错题本 UI 状态
  */
 data class WrongAnswersUiState(
-    val isLoading: Boolean = false,
-    val wrongAnswers: List<AnswerHistory> = emptyList(),
-    val reviewQuestions: List<AnswerHistory> = emptyList(),
-    val totalWrongCount: Int = 0,
-    val dueReviewCount: Int = 0,
-    val error: String? = null,
-    val showReviewMode: Boolean = false,
-    val currentReviewQuestion: AnswerHistory? = null,
-    val reviewIndex: Int = 0,
-    val reviewTotal: Int = 0,
-    val reviewSuccess: Boolean? = null
+ val isLoading: Boolean = false,
+ val wrongAnswers: List<AnswerHistory> = emptyList(),
+ val reviewQuestions: List<AnswerHistory> = emptyList(),
+ val totalWrongCount: Int = 0,
+ val dueReviewCount: Int = 0,
+ val error: String? = null,
+ val showReviewMode: Boolean = false,
+ val currentReviewQuestion: AnswerHistory? = null,
+ val reviewIndex: Int = 0,
+ val reviewTotal: Int = 0,
+ val reviewSuccess: Boolean? = null
 )
 
 /**
  * 错题本 ViewModel
  */
-class WrongAnswersViewModel(
-    private val getAllWrongAnswers: GetAllWrongAnswers,
-    private val getTodayReviewQuestions: GetTodayReviewQuestions,
-    private val getWrongAnswerStats: GetWrongAnswerStats,
-    private val markAsReviewed: MarkAsReviewed,
-    private val recordAnswerResult: RecordAnswerResult,
-    private val deleteWrongAnswer: DeleteWrongAnswer
+@HiltViewModel
+class WrongAnswersViewModel @Inject constructor(
+ private val getAllWrongAnswers: GetAllWrongAnswers,
+ private val getTodayReviewQuestions: GetTodayReviewQuestions,
+ private val getWrongAnswerStats: GetWrongAnswerStats,
+ private val markAsReviewed: MarkAsReviewed,
+ private val recordAnswerResult: RecordAnswerResult,
+ private val deleteWrongAnswer: DeleteWrongAnswer
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(WrongAnswersUiState())

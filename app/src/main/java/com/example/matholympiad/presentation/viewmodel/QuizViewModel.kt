@@ -9,6 +9,7 @@ import com.example.matholympiad.data.local.model.Question
 import com.example.matholympiad.data.repository.QuestionRepo
 import com.example.matholympiad.data.repository.UserRepo
 import com.example.matholympiad.domain.usecase.CheckBadges
+import com.example.matholympiad.domain.usecase.RecordAnswerResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ data class QuizUiState(
  val currentQuestionIndex: Int = 0,
  val totalQuestions: Int = 0,
  val score: Int = 0,
- val lastQuestionPoints: Int = 0, // 记录上一题获得的积分
+ val lastQuestionPoints: Int = 0,
  val feedbackShowing: Boolean = false,
  val isCorrect: Boolean? = null,
  val hintShowing: Boolean = false,
@@ -30,14 +31,15 @@ data class QuizUiState(
  val explanation: String = "",
  val encouragement: String = "",
  val quizCompleted: Boolean = false,
- val savedProgress: Boolean = false // 新增：已保存进度状态
+ val savedProgress: Boolean = false
 )
 
 @HiltViewModel
 class QuizViewModel @Inject constructor(
  private val questionRepo: QuestionRepo,
  private val userRepo: UserRepo,
- private val checkBadges: CheckBadges
+ private val checkBadges: CheckBadges,
+ private val recordAnswerResult: RecordAnswerResult
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuizUiState())
@@ -94,6 +96,15 @@ class QuizViewModel @Inject constructor(
  userRepo.updateTodayCompletedCount(_uiState.value.currentQuestionIndex + 1)
  // 更新答题统计（用于正确率计算）
  userRepo.updateUserStats(UserRepo.DEFAULT_USER_ID, isAnswerCorrect)
+ 
+ // 记录答题结果到错题本（关键修复！）
+ recordAnswerResult(
+ userId = UserRepo.DEFAULT_USER_ID,
+ questionId = currentQuestion.id,
+ selectedAnswer = if (userAnswer.toIntOrNull() != null) userAnswer.toInt() else -1,
+ isCorrect = isAnswerCorrect,
+ responseTimeMs = 0 // TODO: 记录实际答题耗时
+ )
  
  // 检查并解锁新勋章
  val user = userRepo.getDefaultUser()

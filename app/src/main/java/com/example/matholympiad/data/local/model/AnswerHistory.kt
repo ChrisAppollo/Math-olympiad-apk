@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import androidx.room.ColumnInfo
 import java.time.LocalDateTime
 
 /**
@@ -33,21 +34,38 @@ import java.time.LocalDateTime
     ]
 )
 data class AnswerHistory(
-    @PrimaryKey(autoGenerate = true)
-    val historyId: Long = 0,
-    
-    val userId: String,           // 用户ID
-    val questionId: String,       // 题目ID
-    val selectedAnswer: Int,      // 用户选择的答案索引
-    val isCorrect: Boolean,       // 是否答对
-    val answeredAt: Long,         // 作答时间戳（毫秒）
-    val responseTimeMs: Long,     // 答题耗时（毫秒）
-    
-    // 艾宾浩斯复习相关
-    val reviewStage: Int = 0,     // 当前复习阶段（0=新错题，1=首次复习...）
-    val nextReviewAt: Long? = null, // 下次复习时间
-    val masteryLevel: Int = 0,    // 掌握程度（0-100）
-    val reviewCount: Int = 0      // 已复习次数
+ @PrimaryKey(autoGenerate = true)
+ val historyId: Long = 0,
+ 
+ @ColumnInfo(name = "userId")
+ val userId: String,
+ 
+ @ColumnInfo(name = "questionId")
+ val questionId: String,
+ 
+ @ColumnInfo(name = "selectedAnswer")
+ val selectedAnswer: Int,
+ 
+ @ColumnInfo(name = "isCorrect", typeAffinity = ColumnInfo.INTEGER)
+ val isCorrect: Boolean,
+ 
+ @ColumnInfo(name = "answeredAt")
+ val answeredAt: Long,
+ 
+ @ColumnInfo(name = "responseTimeMs")
+ val responseTimeMs: Long,
+ 
+ @ColumnInfo(name = "reviewStage")
+ val reviewStage: Int = 0,
+ 
+ @ColumnInfo(name = "nextReviewAt")
+ val nextReviewAt: Long? = null,
+ 
+ @ColumnInfo(name = "masteryLevel")
+ val masteryLevel: Int = 0,
+ 
+ @ColumnInfo(name = "reviewCount")
+ val reviewCount: Int = 0
 ) {
     companion object {
         /**

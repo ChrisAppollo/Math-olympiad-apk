@@ -44,13 +44,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "math_olympiad_database"
                 )
-        .addMigrations(
-            DatabaseMigrations.MIGRATION_1_2,
-            DatabaseMigrations.MIGRATION_2_3,
-            DatabaseMigrations.MIGRATION_3_4,
-            DatabaseMigrations.MIGRATION_4_5
-        )
- .fallbackToDestructiveMigration() // 作为后备方案
+ .addMigrations(
+  DatabaseMigrations.MIGRATION_1_2,
+  DatabaseMigrations.MIGRATION_2_3,
+  DatabaseMigrations.MIGRATION_3_4,
+  DatabaseMigrations.MIGRATION_4_5
+ )
+ .fallbackToDestructiveMigration()
  .build()
  
                 INSTANCE = instance
