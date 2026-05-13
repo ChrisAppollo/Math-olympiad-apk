@@ -3,8 +3,11 @@ name: Android Release Build
 on:
   push:
     tags:
-      - 'v*'  # Trigger on version tags like v1.0.0, v1.0.1
-  workflow_dispatch:  # Allow manual trigger from GitHub UI
+      - 'v*' # Trigger on version tags like v1.0.0, v1.0.1
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+permissions:
+  contents: write
 
 jobs:
   build:
