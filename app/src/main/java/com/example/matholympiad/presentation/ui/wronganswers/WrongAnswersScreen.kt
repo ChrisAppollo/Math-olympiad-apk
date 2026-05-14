@@ -78,9 +78,12 @@ fun WrongAnswersScreen(
  question = uiState.selectedQuestion!!,
  history = uiState.selectedHistory,
  selectedAnswerIndex = uiState.selectedAnswerIndex,
+ fillInBlankAnswer = uiState.fillInBlankAnswer,
  isCorrect = uiState.dialogAnswerResult,
  showExplanation = uiState.showExplanation,
  onAnswerSelected = { viewModel.onDialogAnswerSelected(it) },
+ onFillInBlankChanged = { viewModel.onFillInBlankAnswerChanged(it) },
+ onSubmitFillInBlank = { viewModel.onSubmitFillInBlank() },
  onDismiss = { viewModel.dismissQuestionDialog() }
  )
  }
@@ -438,9 +441,12 @@ fun QuestionReviewDialog(
  question: Question,
  history: AnswerHistory?,
  selectedAnswerIndex: Int?,
+ fillInBlankAnswer: String,
  isCorrect: Boolean?,
  showExplanation: Boolean,
  onAnswerSelected: (Int) -> Unit,
+ onFillInBlankChanged: (String) -> Unit,
+ onSubmitFillInBlank: () -> Unit,
  onDismiss: () -> Unit
 ) {
  AlertDialog(
@@ -584,6 +590,63 @@ fun QuestionReviewDialog(
  }
  }
  Spacer(modifier = Modifier.height(6.dp))
+ }
+ } else if (question.isFillInBlank()) {
+ // 填空题：输入框
+ if (isCorrect == null) {
+ OutlinedTextField(
+ value = fillInBlankAnswer,
+ onValueChange = onFillInBlankChanged,
+ label = { Text("输入你的答案") },
+ placeholder = { Text("请输入答案...") },
+ singleLine = true,
+ modifier = Modifier.fillMaxWidth()
+ )
+ Spacer(modifier = Modifier.height(8.dp))
+ Button(
+ onClick = onSubmitFillInBlank,
+ enabled = fillInBlankAnswer.trim().isNotEmpty(),
+ modifier = Modifier.fillMaxWidth()
+ ) {
+ Text("提交答案")
+ }
+ } else {
+ // 已提交答案，显示对比
+ Surface(
+ shape = RoundedCornerShape(8.dp),
+ color = if (isCorrect) Color(0xFFE8F5E9) else Color(0xFFFFEBEE),
+ modifier = Modifier.fillMaxWidth()
+ ) {
+ Column(
+ modifier = Modifier.padding(12.dp)
+ ) {
+ Text(
+ text = "你的答案：",
+ fontSize = 12.sp,
+ color = Color.Gray
+ )
+ Text(
+ text = fillInBlankAnswer,
+ fontSize = 16.sp,
+ fontWeight = FontWeight.Medium,
+ color = if (isCorrect) Color(0xFF4CAF50) else Color(0xFFF44336)
+ )
+ if (!isCorrect) {
+ Spacer(modifier = Modifier.height(4.dp))
+ Text(
+ text = "正确答案：",
+ fontSize = 12.sp,
+ color = Color.Gray
+ )
+ Text(
+ text = question.correctAnswerText,
+ fontSize = 16.sp,
+ fontWeight = FontWeight.Medium,
+ color = Color(0xFF4CAF50)
+ )
+ }
+ }
+ }
  }
  }
  

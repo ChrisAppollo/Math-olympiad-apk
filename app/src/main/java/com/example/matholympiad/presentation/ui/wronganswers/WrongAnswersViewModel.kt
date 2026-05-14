@@ -41,6 +41,7 @@ data class WrongAnswersUiState(
  val selectedQuestion: Question? = null,
  val selectedHistory: AnswerHistory? = null,
  val selectedAnswerIndex: Int? = null,
+ val fillInBlankAnswer: String = "",
  val dialogAnswerResult: Boolean? = null,
  val showExplanation: Boolean = false
 )
@@ -224,6 +225,7 @@ private fun loadStats() {
  selectedQuestion = question,
  selectedHistory = history,
  selectedAnswerIndex = null,
+ fillInBlankAnswer = "",
  dialogAnswerResult = null,
  showExplanation = false
  )
@@ -261,6 +263,44 @@ private fun loadStats() {
  }
 
  /**
+ * 更新填空题答案文本
+ */
+ fun onFillInBlankAnswerChanged(answer: String) {
+ _uiState.value = _uiState.value.copy(fillInBlankAnswer = answer)
+ }
+
+ /**
+ * 提交填空题答案
+ */
+ fun onSubmitFillInBlank() {
+ val question = _uiState.value.selectedQuestion ?: return
+ val userAnswer = _uiState.value.fillInBlankAnswer.trim()
+ if (userAnswer.isEmpty()) return
+
+ val isCorrect = question.checkAnswer(userAnswer)
+ _uiState.value = _uiState.value.copy(
+ dialogAnswerResult = isCorrect,
+ showExplanation = true
+ )
+
+ // 记录复习结果
+ viewModelScope.launch {
+ recordAnswerResult(
+ userId = currentUserId,
+ questionId = question.id,
+ selectedAnswer = -1,
+ isCorrect = isCorrect,
+ responseTimeMs = 0
+ )
+ markAsReviewed(
+ userId = currentUserId,
+ questionId = question.id,
+ wasCorrect = isCorrect
+ )
+ }
+ }
+
+ /**
  * 关闭复习对话框
  */
  fun dismissQuestionDialog() {
@@ -269,6 +309,7 @@ private fun loadStats() {
  selectedQuestion = null,
  selectedHistory = null,
  selectedAnswerIndex = null,
+ fillInBlankAnswer = "",
  dialogAnswerResult = null,
  showExplanation = false
  )
