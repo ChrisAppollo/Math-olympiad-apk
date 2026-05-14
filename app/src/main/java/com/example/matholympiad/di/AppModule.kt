@@ -41,12 +41,12 @@ fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
         AppDatabase::class.java,
         "math_olympiad_database"
     )
-    .addMigrations(
-        DatabaseMigrations.MIGRATION_1_2,
-        DatabaseMigrations.MIGRATION_2_3,
-        DatabaseMigrations.MIGRATION_3_4,
-        DatabaseMigrations.MIGRATION_4_5
-    )
+ .addMigrations(
+ DatabaseMigrations.MIGRATION_1_2,
+ DatabaseMigrations.MIGRATION_2_3,
+ DatabaseMigrations.MIGRATION_3_4,
+ DatabaseMigrations.MIGRATION_4_5_NOOP
+ )
     .fallbackToDestructiveMigration()
     .build()
 }
