@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.local.model.AnswerHistory
 import com.example.matholympiad.data.local.model.AppConstants
+import com.example.matholympiad.data.local.model.Question
+import com.example.matholympiad.data.repository.QuestionRepo
 import com.example.matholympiad.domain.usecase.CheckBadges
 import com.example.matholympiad.domain.usecase.DeleteWrongAnswer
 import com.example.matholympiad.domain.usecase.GetAllWrongAnswers
@@ -33,7 +35,14 @@ data class WrongAnswersUiState(
  val currentReviewQuestion: AnswerHistory? = null,
  val reviewIndex: Int = 0,
  val reviewTotal: Int = 0,
- val reviewSuccess: Boolean? = null
+ val reviewSuccess: Boolean? = null,
+ // 点击单个错题复习
+ val showQuestionDialog: Boolean = false,
+ val selectedQuestion: Question? = null,
+ val selectedHistory: AnswerHistory? = null,
+ val selectedAnswerIndex: Int? = null,
+ val dialogAnswerResult: Boolean? = null,
+ val showExplanation: Boolean = false
 )
 
 /**
@@ -41,13 +50,14 @@ data class WrongAnswersUiState(
  */
 @HiltViewModel
 class WrongAnswersViewModel @Inject constructor(
-    private val getAllWrongAnswers: GetAllWrongAnswers,
-    private val getTodayReviewQuestions: GetTodayReviewQuestions,
-    private val getWrongAnswerStats: GetWrongAnswerStats,
-    private val markAsReviewed: MarkAsReviewed,
-    private val recordAnswerResult: RecordAnswerResult,
-    private val deleteWrongAnswer: DeleteWrongAnswer,
-    private val checkBadges: CheckBadges
+ private val getAllWrongAnswers: GetAllWrongAnswers,
+ private val getTodayReviewQuestions: GetTodayReviewQuestions,
+ private val getWrongAnswerStats: GetWrongAnswerStats,
+ private val markAsReviewed: MarkAsReviewed,
+ private val recordAnswerResult: RecordAnswerResult,
+ private val deleteWrongAnswer: DeleteWrongAnswer,
+ private val checkBadges: CheckBadges,
+ private val questionRepo: QuestionRepo
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(WrongAnswersUiState())
@@ -188,16 +198,82 @@ private fun loadStats() {
         )
     }
     
-    /**
-     * 删除错题
-     */
-    fun deleteQuestion(questionId: String) {
-        viewModelScope.launch {
-            try {
-                deleteWrongAnswer(currentUserId, questionId)
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(error = e.message)
-            }
-        }
-    }
+ /**
+ * 删除错题
+ */
+ fun deleteQuestion(questionId: String) {
+ viewModelScope.launch {
+ try {
+ deleteWrongAnswer(currentUserId, questionId)
+ } catch (e: Exception) {
+ _uiState.value = _uiState.value.copy(error = e.message)
+ }
+ }
+ }
+
+ /**
+ * 点击错题 → 加载题目详情 → 打开复习对话框
+ */
+ fun onQuestionClick(questionId: String) {
+ viewModelScope.launch {
+ val history = _uiState.value.wrongAnswers.find { it.questionId == questionId } ?: return@launch
+ val question = questionRepo.getQuestionById(questionId)
+ if (question != null) {
+ _uiState.value = _uiState.value.copy(
+ showQuestionDialog = true,
+ selectedQuestion = question,
+ selectedHistory = history,
+ selectedAnswerIndex = null,
+ dialogAnswerResult = null,
+ showExplanation = false
+ )
+ }
+ }
+ }
+
+ /**
+ * 在对话框中选择答案
+ */
+ fun onDialogAnswerSelected(answerIndex: Int) {
+ val question = _uiState.value.selectedQuestion ?: return
+ val isCorrect = answerIndex == question.correctAnswer
+ _uiState.value = _uiState.value.copy(
+ selectedAnswerIndex = answerIndex,
+ dialogAnswerResult = isCorrect,
+ showExplanation = true
+ )
+
+ // 记录复习结果
+ viewModelScope.launch {
+ recordAnswerResult(
+ userId = currentUserId,
+ questionId = question.id,
+ selectedAnswer = answerIndex,
+ isCorrect = isCorrect,
+ responseTimeMs = 0
+ )
+ markAsReviewed(
+ userId = currentUserId,
+ questionId = question.id,
+ wasCorrect = isCorrect
+ )
+ }
+ }
+
+ /**
+ * 关闭复习对话框
+ */
+ fun dismissQuestionDialog() {
+ _uiState.value = _uiState.value.copy(
+ showQuestionDialog = false,
+ selectedQuestion = null,
+ selectedHistory = null,
+ selectedAnswerIndex = null,
+ dialogAnswerResult = null,
+ showExplanation = false
+ )
+ // 刷新数据
+ loadReviewQuestions()
+ loadStats()
+ }
 }

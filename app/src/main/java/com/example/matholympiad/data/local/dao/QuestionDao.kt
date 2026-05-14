@@ -33,6 +33,9 @@ interface QuestionDao {
  @Query("SELECT * FROM questions WHERE id IN (:questionIds)")
  suspend fun getQuestionsByIds(questionIds: List<String>): List<Question>
  
+ @Query("SELECT * FROM questions WHERE id = :questionId")
+ suspend fun getQuestionById(questionId: String): Question?
+ 
  @Insert(onConflict = OnConflictStrategy.REPLACE)
  suspend fun insertTodayQuestions(todayQuestions: List<TodayQuestion>)
  

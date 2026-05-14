@@ -75,6 +75,13 @@ suspend fun getAllQuestions(): List<Question> {
  }
 
 /**
+ * 通过 ID 获取单个题目
+ */
+suspend fun getQuestionById(questionId: String): Question? {
+    return questionDao.getQuestionById(questionId)
+}
+
+/**
  * 获取题库统计信息
  */
  suspend fun getQuestionStats(): Map<String, Int> {
