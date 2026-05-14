@@ -154,20 +154,45 @@ LaunchedEffect(uiState.currentQuestionIndex) {
                                     color = AppColors.TextGray
                                 )
                             }
-                        } else if (uiState.quizCompleted) {
-                            Text(
-                                text = "今日答题完成！",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = AppColors.PrimaryOrange
-                            )
-                        } else {
-                            Text(
-                                text = "加载题目中...",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = AppColors.TextGray
-                            )
-                        }
+ } else if (uiState.quizCompleted) {
+ Text(
+ text = "今日答题完成！",
+ style = MaterialTheme.typography.titleLarge,
+ fontWeight = FontWeight.Bold,
+ color = AppColors.PrimaryOrange
+ )
+ } else if (uiState.isLoading) {
+ CircularProgressIndicator(
+ modifier = Modifier.size(32.dp),
+ color = AppColors.PrimaryOrange
+ )
+ Spacer(modifier = Modifier.height(8.dp))
+ Text(
+ text = "加载题目中...",
+ style = MaterialTheme.typography.titleLarge,
+ color = AppColors.TextGray
+ )
+ } else if (uiState.errorMessage != null) {
+ Text(
+ text = uiState.errorMessage!!,
+ style = MaterialTheme.typography.titleLarge,
+ fontWeight = FontWeight.Bold,
+ color = AppColors.AlertRed
+ )
+ Spacer(modifier = Modifier.height(12.dp))
+ Button(
+ onClick = { /* 用户可通过返回键退出 */ },
+ colors = ButtonDefaults.buttonColors(containerColor = AppColors.PrimaryOrange)
+ ) {
+ Text("返回首页", color = Color.White)
+ }
+ } else {
+ Text(
+ text = "加载题目中...",
+ style = MaterialTheme.typography.titleLarge,
+ color = AppColors.TextGray
+ )
+ }
                     }
                 }
 

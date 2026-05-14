@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.local.model.Question
 import com.example.matholympiad.data.repository.QuestionRepo
+import com.example.matholympiad.data.repository.QuestionRepositoryInitializer
 import com.example.matholympiad.data.repository.UserRepo
 import com.example.matholympiad.domain.usecase.CheckBadges
 import com.example.matholympiad.domain.usecase.RecordAnswerResult
@@ -31,12 +32,15 @@ data class QuizUiState(
  val explanation: String = "",
  val encouragement: String = "",
  val quizCompleted: Boolean = false,
- val savedProgress: Boolean = false
+ val savedProgress: Boolean = false,
+ val isLoading: Boolean = true,
+ val errorMessage: String? = null
 )
 
 @HiltViewModel
 class QuizViewModel @Inject constructor(
  private val questionRepo: QuestionRepo,
+ private val questionInitializer: QuestionRepositoryInitializer,
  private val userRepo: UserRepo,
  private val checkBadges: CheckBadges,
  private val recordAnswerResult: RecordAnswerResult
@@ -58,13 +62,34 @@ class QuizViewModel @Inject constructor(
 
  private fun loadQuestions() {
  viewModelScope.launch {
- questions = questionRepo.getTodayQuestions() // 只加载3道今日题目
+ _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+ try {
+ // 先确保题库已初始化
+ questionInitializer.initializeIfNeeded()
+ questions = questionRepo.getTodayQuestions()
  if (questions.isNotEmpty()) {
  _uiState.update {
  it.copy(
  currentQuestion = questions[0],
  currentQuestionIndex = 0,
- totalQuestions = questions.size // 这里会显示3
+ totalQuestions = questions.size,
+ isLoading = false
+ )
+ }
+ } else {
+ _uiState.update {
+ it.copy(
+ isLoading = false,
+ errorMessage = "题库为空，请重启应用后重试"
+ )
+ }
+ }
+ } catch (e: Exception) {
+ e.printStackTrace()
+ _uiState.update {
+ it.copy(
+ isLoading = false,
+ errorMessage = "加载题目失败：${e.message}"
  )
  }
  }
@@ -188,7 +213,8 @@ class QuizViewModel @Inject constructor(
  fun resetQuiz() {
  correctStreak = 0
  userAnswer = ""
- loadQuestions() // 重新加载今日3道题目
+ _uiState.update { QuizUiState() } // 重置所有状态
+ loadQuestions() // 重新加载今日题目
  }
 
     private fun calculatePoints(difficulty: Int, streak: Int): Int {

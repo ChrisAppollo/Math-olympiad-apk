@@ -17,45 +17,45 @@ import com.example.matholympiad.data.local.model.AnswerHistory
  * Room 数据库主类
  */
 @Database(
-    entities = [
-        User::class,
-        Question::class,
-        Badge::class,
-        TodayQuestion::class,
-        AnswerHistory::class
-    ],
-    version = 5,
-    exportSchema = false
+ entities = [
+ User::class,
+ Question::class,
+ Badge::class,
+ TodayQuestion::class,
+ AnswerHistory::class
+ ],
+ version = 5,
+ exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
-    
-    abstract fun userDao(): UserDao
-    abstract fun questionDao(): QuestionDao
-    abstract fun wrongAnswerDao(): WrongAnswerDao
  
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
+ abstract fun userDao(): UserDao
+ abstract fun questionDao(): QuestionDao
+ abstract fun wrongAnswerDao(): WrongAnswerDao
  
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "math_olympiad_database"
-                )
+ companion object {
+ @Volatile
+ private var INSTANCE: AppDatabase? = null
+ 
+ fun getDatabase(context: Context): AppDatabase {
+ return INSTANCE ?: synchronized(this) {
+ val instance = Room.databaseBuilder(
+ context.applicationContext,
+ AppDatabase::class.java,
+ "math_olympiad_database"
+ )
  .addMigrations(
-  DatabaseMigrations.MIGRATION_1_2,
-  DatabaseMigrations.MIGRATION_2_3,
-  DatabaseMigrations.MIGRATION_3_4,
-  DatabaseMigrations.MIGRATION_4_5
+ DatabaseMigrations.MIGRATION_1_2,
+ DatabaseMigrations.MIGRATION_2_3,
+ DatabaseMigrations.MIGRATION_3_4,
+ DatabaseMigrations.MIGRATION_4_5_NOOP
  )
  .fallbackToDestructiveMigration()
  .build()
  
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
+ INSTANCE = instance
+ instance
+ }
+ }
+ }
 }
