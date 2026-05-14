@@ -324,13 +324,13 @@ fun BadgeDetailDialog(
                     textAlign = TextAlign.Center
                 )
                 
-                if (!badge.isUnlocked) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = "需要 ${badge.requiredPoints} 积分",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.AlertRed
-                    )
+            if (!badge.isUnlocked) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "🔓 ${badge.unlockCondition}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AppColors.AlertRed
+                )
                 } else {
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(

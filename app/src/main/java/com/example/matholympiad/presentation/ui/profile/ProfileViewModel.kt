@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.local.model.User
 import com.example.matholympiad.data.repository.UserRepo
+import com.example.matholympiad.domain.usecase.CheckBadges
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepo: UserRepo
+    private val userRepo: UserRepo,
+    private val checkBadges: CheckBadges
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -29,23 +31,29 @@ class ProfileViewModel @Inject constructor(
                 
                 val userData = userRepo.getCurrentUserId()
                 val score = userRepo.getUserScore(userData)
+                val user = userRepo.getDefaultUser()
                 
-                // 计算勋章状态
+                // 使用 CheckBadges UseCase 获取已解锁勋章 ID
+                val unlockedBadgeIds = user.getBadgesList().toSet()
+                
+                // 计算勋章状态 — 基于 CheckBadges 的实际解锁条件
                 val allBadges = Badges.getAllBadges()
-                val unlockedBadges = calculateUnlockedBadges(score, allBadges)
+                val badgesWithStatus = allBadges.map { badge ->
+                    badge.copy(isUnlocked = badge.id in unlockedBadgeIds)
+                }
                 
                 // 计算正确率
                 val answeredCount = userRepo.getUserAnswerQuestionNums(userData)
                 val correctCount = userRepo.getUserCorrectAnswerNums(userData)
-             val correctRate = if (answeredCount > 0) correctCount.toFloat() / answeredCount else 0f
+                val correctRate = if (answeredCount > 0) correctCount.toFloat() / answeredCount else 0f
                 
                 _uiState.value = ProfileUiState(
                     loading = false,
-                    user = null, // 简化处理
+                    user = user,
                     totalScore = score,
-                    badgesCount = unlockedBadges.count { it.value },
+                    badgesCount = badgesWithStatus.count { it.isUnlocked },
                     streakCount = userRepo.getUserStreak(userData),
-                    badges = allBadges.map { it.copy(isUnlocked = it.id in unlockedBadges.filterValues { v -> v }.keys) },
+                    badges = badgesWithStatus,
                     answeredQuestionsCount = answeredCount,
                     correctRate = correctRate
                 )
@@ -53,19 +61,6 @@ class ProfileViewModel @Inject constructor(
                 e.printStackTrace()
                 _uiState.value = _uiState.value.copy(loading = false)
             }
-        }
-    }
-    
-    private fun calculateUnlockedBadges(score: Int, badges: List<Badge>): Map<String, Boolean> {
-        return badges.associate { badge ->
-            val unlocked = when (badge.id) {
-                "first_quiz" -> true // 首次答题
-                "perfect_score", "math_wizard", "streak_3", "streak_7", "collector", "quick_solver" -> 
-                    score >= badge.requiredPoints
-                "master" -> score >= 1000
-                else -> false
-            }
-            badge.id to unlocked
         }
     }
 }

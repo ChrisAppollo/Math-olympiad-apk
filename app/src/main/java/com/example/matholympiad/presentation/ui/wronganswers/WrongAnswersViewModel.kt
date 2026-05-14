@@ -3,6 +3,8 @@ package com.example.matholympiad.presentation.ui.wronganswers
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.matholympiad.data.local.model.AnswerHistory
+import com.example.matholympiad.data.local.model.AppConstants
+import com.example.matholympiad.domain.usecase.CheckBadges
 import com.example.matholympiad.domain.usecase.DeleteWrongAnswer
 import com.example.matholympiad.domain.usecase.GetAllWrongAnswers
 import com.example.matholympiad.domain.usecase.GetTodayReviewQuestions
@@ -39,18 +41,19 @@ data class WrongAnswersUiState(
  */
 @HiltViewModel
 class WrongAnswersViewModel @Inject constructor(
- private val getAllWrongAnswers: GetAllWrongAnswers,
- private val getTodayReviewQuestions: GetTodayReviewQuestions,
- private val getWrongAnswerStats: GetWrongAnswerStats,
- private val markAsReviewed: MarkAsReviewed,
- private val recordAnswerResult: RecordAnswerResult,
- private val deleteWrongAnswer: DeleteWrongAnswer
+    private val getAllWrongAnswers: GetAllWrongAnswers,
+    private val getTodayReviewQuestions: GetTodayReviewQuestions,
+    private val getWrongAnswerStats: GetWrongAnswerStats,
+    private val markAsReviewed: MarkAsReviewed,
+    private val recordAnswerResult: RecordAnswerResult,
+    private val deleteWrongAnswer: DeleteWrongAnswer,
+    private val checkBadges: CheckBadges
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(WrongAnswersUiState())
     val uiState: StateFlow<WrongAnswersUiState> = _uiState.asStateFlow()
     
-    private var currentUserId: String = "user_001" // TODO: 从用户认证获取
+    private var currentUserId: String = AppConstants.DEFAULT_USER_ID
     
     init {
         loadWrongAnswers()
@@ -155,17 +158,21 @@ private fun loadStats() {
         val currentIndex = _uiState.value.reviewIndex
         val questions = _uiState.value.reviewQuestions
         
-        if (currentIndex + 1 < questions.size) {
-            _uiState.value = _uiState.value.copy(
-                reviewIndex = currentIndex + 1,
-                currentReviewQuestion = questions[currentIndex + 1],
-                reviewSuccess = null
-            )
-        } else {
-            // 复习完成
-            exitReviewMode()
-            loadReviewQuestions() // 刷新列表
-        }
+            if (currentIndex + 1 < questions.size) {
+                _uiState.value = _uiState.value.copy(
+                    reviewIndex = currentIndex + 1,
+                    currentReviewQuestion = questions[currentIndex + 1],
+                    reviewSuccess = null
+                )
+            } else {
+                // 复习完成 — 触发复习达人勋章检查
+                viewModelScope.launch {
+                    checkBadges.checkReviewBadge()
+                }
+                // 复习完成
+                exitReviewMode()
+                loadReviewQuestions() // 刷新列表
+            }
     }
     
     /**
